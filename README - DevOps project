@@ -1,0 +1,2 @@
+Open a new GitHub repo, pull the repo into the cloud shell and config the GitHub user for a future Push requests.
+Enable "Kubernetes Engine API" (for GCP).
