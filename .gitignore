@@ -6,7 +6,7 @@
 *.tfvars.json
 crash.log
 .terraform.lock.hcl
-
+.terraform.tfstate.1745060439.backup
 # IDE/editor stuff
 .vscode/
 .idea/
