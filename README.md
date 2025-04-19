@@ -4,3 +4,5 @@ Create the "production" namespace that gonna be used (the rest namespaces will b
 Add the Helm repo's that gonna be used in the future Terraform script and make sure these are the latest chart versions.
 Set up a git ignore file that will prevent a high memory Terraform files to be pushed. 
 Plan and Apply Terraform script.
+Access Your API Key in https://site.financialmodelingprep.com/developer/docs/dashboard
+
