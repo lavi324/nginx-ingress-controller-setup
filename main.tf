@@ -27,7 +27,7 @@ resource "google_container_cluster" "my_cluster" {
   location           = "us-central1"
   network            = google_compute_network.vpc_network.id
   subnetwork         = google_compute_subnetwork.subnet.id
-  deletion_protection = true
+  deletion_protection = false
 
   node_pool {
     name              = "default"
