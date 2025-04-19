@@ -5,9 +5,13 @@ function App() {
   const [spData, setSpData] = useState(null);
 
   useEffect(() => {
-    fetch('/api/snp')
+    // Updated to call the backend using its external IP
+    fetch('http://34.10.205.70:3001/api/sp500')
       .then(res => res.json())
-      .then(data => setSpData(data));
+      .then(data => setSpData(data))
+      .catch(err => {
+        console.error('Failed to fetch S&P 500 data:', err);
+      });
   }, []);
 
   return (
