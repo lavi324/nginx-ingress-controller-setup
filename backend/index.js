@@ -6,6 +6,7 @@ const cors = require('cors');
 const app = express();
 app.use(cors());
 
+// MongoDB model for logging IP and timestamp
 const UserMeta = mongoose.model('UserMeta', new mongoose.Schema({
   ip: String,
   accessedAt: Date
@@ -24,7 +25,8 @@ mongoose.connect(mongoUri, {
   console.error('MongoDB connection error:', err.message);
 });
 
-app.get('/api/snp', async (req, res) => {
+// Shared handler for fetching S&P 500 data and logging IP
+const fetchSP500 = async (req, res) => {
   try {
     const apiKey = 'nrDn3xacOEf4dFkRzGzBu31Ef4wCxqL2'; // FMP API key
     const response = await axios.get(`https://financialmodelingprep.com/api/v3/quote/%5EGSPC?apikey=${apiKey}`);
@@ -37,7 +39,11 @@ app.get('/api/snp', async (req, res) => {
     console.error(err.message);
     res.status(500).json({ error: 'Failed to fetch S&P 500 data' });
   }
-});
+};
+
+// Serve both routes (you can remove one if unnecessary)
+app.get('/api/snp', fetchSP500);
+app.get('/api/sp500', fetchSP500);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
