@@ -12,4 +12,6 @@ Set up the backend file and the Docker file.
 Install React (JavaScript library for building user interfaces) in the frontendend directory and ensure that all the default folder Structure were created.
 Install axios again.
 Set up the frontend file and the Docker file.
-Create 3 Docker hub repositories (frontend, backend and frontend Helm chart)
+Create 3 Docker hub repositories (frontend, backend and frontend Helm chart).
+Build and Push the Docker images.
+Create Kubernetes files with the new Docker images and apply.
