@@ -31,7 +31,7 @@ resource "google_container_cluster" "my_cluster" {
 
   node_pool {
     name              = "default"
-    initial_node_count = 2
+    initial_node_count = 1
     node_locations     = ["us-central1-a"]
 
     node_config {
