@@ -31,8 +31,15 @@ const fetchAppleStock = async (req, res) => {
     const apiKey = 'nrDn3xacOEf4dFkRzGzBu31Ef4wCxqL2'; // FMP API key
     const response = await axios.get(`https://financialmodelingprep.com/api/v3/quote/AAPL?apikey=${apiKey}`);
     
-    const userIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    await new UserMeta({ ip: userIp, accessedAt: new Date() }).save();
+    // Improved IP detection
+    const forwardedFor = req.headers['x-forwarded-for'];
+    const ip = forwardedFor?.split(',')[0]?.trim() || req.connection?.remoteAddress || req.socket?.remoteAddress;
+
+    // Optional debugging
+    console.log('Forwarded IPs:', forwardedFor);
+    console.log('Resolved IP:', ip);
+
+    await new UserMeta({ ip, accessedAt: new Date() }).save();
 
     res.json(response.data[0]);
   } catch (err) {
