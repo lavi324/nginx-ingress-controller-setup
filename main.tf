@@ -61,8 +61,9 @@ resource "helm_release" "jenkins" {
   repository = "jenkins"  # This refers to the repository name you added with `helm repo add jenkins https://charts.jenkins.io`
   chart      = "jenkins/jenkins"
   namespace  = "jenkins"
-  version    = "5.3.1"
+  version    = "5.8.36"
   timeout = 800
+  create_namespace = true
 }
 
 resource "helm_release" "argo-cd" {
@@ -70,6 +71,17 @@ resource "helm_release" "argo-cd" {
   repository = "argo"  # This refers to the repository name you added with `helm repo add argo https://argoproj.github.io/argo-helm`
   chart      = "argo/argo-cd"
   namespace  = "argo"
-  version    = "7.3.0"
+  version    = "7.8.26"
   timeout = 800
+  create_namespace = true
+}
+
+resource "helm_release" "mongodb" {
+  name             = "mongodb"
+  repository       = "https://charts.bitnami.com/bitnami"
+  chart            = "mongodb"
+  namespace        = "mongo"
+  version          = "16.5.1"
+  timeout          = 800
+  create_namespace = true
 }
