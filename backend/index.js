@@ -25,11 +25,11 @@ mongoose.connect(mongoUri, {
   console.error('MongoDB connection error:', err.message);
 });
 
-// Shared handler for fetching S&P 500 data and logging IP
-const fetchSP500 = async (req, res) => {
+// Shared handler for fetching Apple stock data and logging IP
+const fetchAppleStock = async (req, res) => {
   try {
     const apiKey = 'nrDn3xacOEf4dFkRzGzBu31Ef4wCxqL2'; // FMP API key
-    const response = await axios.get(`https://financialmodelingprep.com/api/v3/quote/%5EGSPC?apikey=${apiKey}`);
+    const response = await axios.get(`https://financialmodelingprep.com/api/v3/quote/AAPL?apikey=${apiKey}`);
     
     const userIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     await new UserMeta({ ip: userIp, accessedAt: new Date() }).save();
@@ -37,13 +37,13 @@ const fetchSP500 = async (req, res) => {
     res.json(response.data[0]);
   } catch (err) {
     console.error(err.message);
-    res.status(500).json({ error: 'Failed to fetch S&P 500 data' });
+    res.status(500).json({ error: 'Failed to fetch Apple stock data' });
   }
 };
 
-// Serve both routes (you can remove one if unnecessary)
-app.get('/api/snp', fetchSP500);
-app.get('/api/sp500', fetchSP500);
+// Serve both routes
+app.get('/api/snp', fetchAppleStock);
+app.get('/api/sp500', fetchAppleStock);  // Keeping this for compatibility with frontend
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
