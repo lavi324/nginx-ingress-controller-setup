@@ -25,23 +25,31 @@ mongoose.connect(mongoUri, {
   console.error('MongoDB connection error:', err.message);
 });
 
-// Shared handler for fetching Apple stock data and logging IP
+// Handler for fetching Apple stock data and logging IP
 const fetchAppleStock = async (req, res) => {
   try {
     const apiKey = 'nrDn3xacOEf4dFkRzGzBu31Ef4wCxqL2'; // FMP API key
     const response = await axios.get(`https://financialmodelingprep.com/api/v3/quote/AAPL?apikey=${apiKey}`);
-    
-    // Improved IP detection
-    const forwardedFor = req.headers['x-forwarded-for'];
-    const ip = forwardedFor?.split(',')[0]?.trim() || req.connection?.remoteAddress || req.socket?.remoteAddress;
 
-    // Optional debugging
-    console.log('Forwarded IPs:', forwardedFor);
-    console.log('Resolved IP:', ip);
+    // Get and clean IP
+    let ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim()
+      || req.connection?.remoteAddress
+      || req.socket?.remoteAddress;
 
-    await new UserMeta({ ip, accessedAt: new Date() }).save();
+    if (ip?.startsWith('::ffff:')) {
+      ip = ip.replace('::ffff:', '');
+    }
 
-    res.json(response.data[0]);
+    const accessLog = new UserMeta({ ip, accessedAt: new Date() });
+    await accessLog.save();
+
+    res.json({
+      stock: response.data[0],
+      visitor: {
+        ip: accessLog.ip,
+        accessedAt: accessLog.accessedAt
+      }
+    });
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ error: 'Failed to fetch Apple stock data' });

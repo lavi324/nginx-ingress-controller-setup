@@ -19,9 +19,12 @@ function App() {
       <h1>S&P 500 Index</h1>
       {spData ? (
         <>
-          <h2>{spData.name} ({spData.symbol})</h2>
-          <p>Price: ${spData.price}</p>
-          <p>Change: {spData.change} ({spData.changesPercentage}%)</p>
+          <h2>{spData.stock.name} ({spData.stock.symbol})</h2>
+          <p>Price: ${spData.stock.price}</p>
+          <p>Change: {spData.stock.change} ({spData.stock.changesPercentage}%)</p>
+          <hr />
+          <p><strong>Your IP:</strong> {spData.visitor.ip}</p>
+          <p><strong>Accessed at:</strong> {new Date(spData.visitor.accessedAt).toLocaleString()}</p>
         </>
       ) : (
         <p>Loading...</p>
@@ -31,4 +34,3 @@ function App() {
 }
 
 export default App;
-
