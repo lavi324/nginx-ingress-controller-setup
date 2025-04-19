@@ -4,9 +4,29 @@ provider "google" {
   zone    = "us-central1-a"
 }
 
+# Get GCP client auth token for Kubernetes provider
+data "google_client_config" "default" {}
+
+# Get info about the GKE cluster after creation
+data "google_container_cluster" "my_cluster" {
+  name     = google_container_cluster.my_cluster.name
+  location = google_container_cluster.my_cluster.location
+  depends_on = [google_container_cluster.my_cluster]
+}
+
+# Kubernetes provider using GKE dynamic config
+provider "kubernetes" {
+  host                   = data.google_container_cluster.my_cluster.endpoint
+  token                  = data.google_client_config.default.access_token
+  cluster_ca_certificate = base64decode(data.google_container_cluster.my_cluster.master_auth[0].cluster_ca_certificate)
+}
+
+# Helm provider using the same Kubernetes config
 provider "helm" {
   kubernetes {
-    config_path = "~/.kube/config"
+    host                   = data.google_container_cluster.my_cluster.endpoint
+    token                  = data.google_client_config.default.access_token
+    cluster_ca_certificate = base64decode(data.google_container_cluster.my_cluster.master_auth[0].cluster_ca_certificate)
   }
 }
 
@@ -23,14 +43,14 @@ resource "google_compute_subnetwork" "subnet" {
 }
 
 resource "google_container_cluster" "my_cluster" {
-  name               = "my-cluster"
-  location           = "us-central1"
-  network            = google_compute_network.vpc_network.id
-  subnetwork         = google_compute_subnetwork.subnet.id
+  name                = "my-cluster"
+  location            = "us-central1"
+  network             = google_compute_network.vpc_network.id
+  subnetwork          = google_compute_subnetwork.subnet.id
   deletion_protection = false
 
   node_pool {
-    name              = "default"
+    name               = "default"
     initial_node_count = 1
     node_locations     = ["us-central1-a"]
 
@@ -69,6 +89,7 @@ resource "helm_release" "mongodb" {
   name             = "mongodb"
   repository       = "https://charts.bitnami.com/bitnami"
   chart            = "mongodb"
+  version          = "14.12.3"
   namespace        = "mongo"
   create_namespace = true
   wait             = true
