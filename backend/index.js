@@ -11,15 +11,22 @@ const UserMeta = mongoose.model('UserMeta', new mongoose.Schema({
   accessedAt: Date
 }));
 
-// Connect to MongoDB using Bitnami Helm chart (default MongoDB service name)
-mongoose.connect('mongodb://mongodb:27017/visitorDB', {
+// Use environment variable for MongoDB connection
+const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/visitorDB';
+
+mongoose.connect(mongoUri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  dbName: 'visitorDB',
+}).then(() => {
+  console.log('Connected to MongoDB');
+}).catch((err) => {
+  console.error('MongoDB connection error:', err.message);
 });
 
 app.get('/api/snp', async (req, res) => {
   try {
-    const apiKey = 'nrDn3xacOEf4dFkRzGzBu31Ef4wCxqL2'; // ← FMP free API key
+    const apiKey = 'nrDn3xacOEf4dFkRzGzBu31Ef4wCxqL2'; // FMP API key
     const response = await axios.get(`https://financialmodelingprep.com/api/v3/quote/%5EGSPC?apikey=${apiKey}`);
     
     const userIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
