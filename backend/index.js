@@ -6,11 +6,13 @@ const cors = require('cors');
 const app = express();
 app.use(cors());
 
-// MongoDB model for logging IP and timestamp
-const UserMeta = mongoose.model('UserMeta', new mongoose.Schema({
+// MongoDB model without __v versioning
+const userMetaSchema = new mongoose.Schema({
   ip: String,
   accessedAt: Date
-}));
+}, { versionKey: false }); // ⛔ disables __v
+
+const UserMeta = mongoose.model('UserMeta', userMetaSchema);
 
 // Use environment variable for MongoDB connection
 const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/visitorDB';
@@ -24,6 +26,9 @@ mongoose.connect(mongoUri, {
 }).catch((err) => {
   console.error('MongoDB connection error:', err.message);
 });
+
+// Load time zone support
+const moment = require('moment-timezone');
 
 // Handler for fetching Apple stock data and logging IP
 const fetchAppleStock = async (req, res) => {
@@ -40,14 +45,22 @@ const fetchAppleStock = async (req, res) => {
       ip = ip.replace('::ffff:', '');
     }
 
-    const accessLog = new UserMeta({ ip, accessedAt: new Date() });
+    // Get timestamp in UTC
+    const utcDate = new Date();
+
+    // Convert to Israel time
+    const israelTime = moment(utcDate).tz('Asia/Jerusalem').format('YYYY-MM-DD HH:mm:ss');
+
+    // Save to DB
+    const accessLog = new UserMeta({ ip, accessedAt: utcDate });
     await accessLog.save();
 
+    // Send response with formatted timestamp
     res.json({
       stock: response.data[0],
       visitor: {
-        ip: accessLog.ip,
-        accessedAt: accessLog.accessedAt
+        ip,
+        accessedAt: israelTime // Send Israel-local time to frontend
       }
     });
   } catch (err) {
@@ -58,7 +71,7 @@ const fetchAppleStock = async (req, res) => {
 
 // Serve both routes
 app.get('/api/snp', fetchAppleStock);
-app.get('/api/sp500', fetchAppleStock);  // Keeping this for compatibility with frontend
+app.get('/api/sp500', fetchAppleStock);  // Frontend compatibility
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
