@@ -3,15 +3,23 @@ import './App.css';
 
 function App() {
   const [spData, setSpData] = useState(null);
+  const [clientIp, setClientIp] = useState(null);
 
   useEffect(() => {
-    // Updated to call the backend using its external IP
-    fetch('http://34.10.205.70:3001/api/sp500')
+    // Step 1: Get public IP from client side
+    fetch('https://api.ipify.org?format=json')
+      .then(res => res.json())
+      .then(data => {
+        setClientIp(data.ip);
+        return fetch('http://34.10.205.70:3001/api/sp500', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ip: data.ip }) // send IP to backend
+        });
+      })
       .then(res => res.json())
       .then(data => setSpData(data))
-      .catch(err => {
-        console.error('Failed to fetch S&P 500 data:', err);
-      });
+      .catch(err => console.error('Error fetching data:', err));
   }, []);
 
   return (
@@ -23,8 +31,8 @@ function App() {
           <p>Price: ${spData.stock.price}</p>
           <p>Change: {spData.stock.change} ({spData.stock.changesPercentage}%)</p>
           <hr />
-          <p><strong>Your IP:</strong> {spData.visitor.ip}</p>
-          <p><strong>Accessed at:</strong> {new Date(spData.visitor.accessedAt).toLocaleString()}</p>
+          <p><strong>Your Public IP:</strong> {spData.visitor.ip}</p>
+          <p><strong>Accessed at:</strong> {spData.visitor.accessedAt}</p>
         </>
       ) : (
         <p>Loading...</p>
@@ -34,3 +42,4 @@ function App() {
 }
 
 export default App;
+
