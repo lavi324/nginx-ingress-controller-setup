@@ -9,10 +9,10 @@ app.use(cors());
 app.use(express.json()); // ✅ Parse JSON body
 app.set('trust proxy', true);
 
-// MongoDB schema (no __v)
+// MongoDB schema (now storing accessedAt as String)
 const userMetaSchema = new mongoose.Schema({
   ip: String,
-  accessedAt: Date
+  accessedAt: String // Store formatted Israel time string
 }, { versionKey: false });
 
 const UserMeta = mongoose.model('UserMeta', userMetaSchema);
@@ -38,10 +38,11 @@ app.post('/api/sp500', async (req, res) => {
     const apiKey = 'nrDn3xacOEf4dFkRzGzBu31Ef4wCxqL2';
     const response = await axios.get(`https://financialmodelingprep.com/api/v3/quote/AAPL?apikey=${apiKey}`);
 
-    const utcDate = new Date();
-    const israelTime = moment(utcDate).tz('Asia/Jerusalem').format('YYYY-MM-DD HH:mm:ss');
+    // Convert to Israel timezone and format
+    const israelTime = moment().tz('Asia/Jerusalem').format('YYYY-MM-DD HH:mm:ss');
 
-    const accessLog = new UserMeta({ ip, accessedAt: utcDate });
+    // Save to MongoDB with Israel time as string
+    const accessLog = new UserMeta({ ip, accessedAt: israelTime });
     await accessLog.save();
 
     res.json({
@@ -62,4 +63,3 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Backend running on port ${PORT}`);
 });
-
