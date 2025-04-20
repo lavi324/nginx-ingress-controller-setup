@@ -24,7 +24,7 @@ function App() {
 
   return (
     <div style={{ padding: 50, fontFamily: 'sans-serif', textAlign: 'center' }}>
-      <h1>S&P 500 Index</h1>
+      <h1>Apple Index</h1>
       {spData ? (
         <>
           <h2>{spData.stock.name} ({spData.stock.symbol})</h2>
