@@ -6,13 +6,13 @@ const moment = require('moment-timezone');
 
 const app = express();
 app.use(cors());
-app.use(express.json()); // ✅ Parse JSON body
+app.use(express.json());
 app.set('trust proxy', true);
 
-// MongoDB schema (now storing accessedAt as String)
+// MongoDB schema
 const userMetaSchema = new mongoose.Schema({
   ip: String,
-  accessedAt: String // Store formatted Israel time string
+  accessedAt: String
 }, { versionKey: false });
 
 const UserMeta = mongoose.model('UserMeta', userMetaSchema);
@@ -29,7 +29,12 @@ mongoose.connect(mongoUri, {
   console.error('MongoDB connection error:', err.message);
 });
 
-// Route: POST to log IP + return stock data
+// ✅ ADD THIS SAFE GET ROUTE to avoid browser error
+app.get('/api/sp500', (req, res) => {
+  res.status(200).send('✅ This API accepts POST requests only.');
+});
+
+// POST route to log IP and return stock data
 app.post('/api/sp500', async (req, res) => {
   try {
     const { ip } = req.body;
@@ -38,10 +43,8 @@ app.post('/api/sp500', async (req, res) => {
     const apiKey = 'nrDn3xacOEf4dFkRzGzBu31Ef4wCxqL2';
     const response = await axios.get(`https://financialmodelingprep.com/api/v3/quote/AAPL?apikey=${apiKey}`);
 
-    // Convert to Israel timezone and format
     const israelTime = moment().tz('Asia/Jerusalem').format('YYYY-MM-DD HH:mm:ss');
 
-    // Save to MongoDB with Israel time as string
     const accessLog = new UserMeta({ ip, accessedAt: israelTime });
     await accessLog.save();
 
