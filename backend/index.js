@@ -6,17 +6,19 @@ const moment = require('moment-timezone');
 
 const app = express();
 app.use(cors());
-app.set('trust proxy', true); // ✅ Trust the proxy to get the user's real public IP
 
-// MongoDB schema (no __v)
+// Trust X-Forwarded-For header from the load balancer
+app.set('trust proxy', true);
+
+// MongoDB schema with no __v
 const userMetaSchema = new mongoose.Schema({
   ip: String,
-  accessedAt: Date
-}, { versionKey: false }); // ✅ disables __v
+  accessedAt: String  // Store as string in local Israel time
+}, { versionKey: false });
 
 const UserMeta = mongoose.model('UserMeta', userMetaSchema);
 
-// MongoDB connection
+// Connect to MongoDB
 const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/visitorDB';
 
 mongoose.connect(mongoUri, {
@@ -29,24 +31,29 @@ mongoose.connect(mongoUri, {
   console.error('MongoDB connection error:', err.message);
 });
 
-// Main route handler
+// API route
 const fetchAppleStock = async (req, res) => {
   try {
     const apiKey = 'nrDn3xacOEf4dFkRzGzBu31Ef4wCxqL2';
     const response = await axios.get(`https://financialmodelingprep.com/api/v3/quote/AAPL?apikey=${apiKey}`);
 
-    // ✅ Get real public IP (after trust proxy is enabled)
-    const ip = req.ip;
+    // Get real public IP from X-Forwarded-For header or fallback
+    let ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim()
+      || req.connection?.remoteAddress
+      || req.socket?.remoteAddress;
 
-    // UTC date + conversion to Israel time
-    const utcDate = new Date();
-    const israelTime = moment(utcDate).tz('Asia/Jerusalem').format('YYYY-MM-DD HH:mm:ss');
+    if (ip?.startsWith('::ffff:')) {
+      ip = ip.replace('::ffff:', '');
+    }
 
-    // Save to MongoDB
-    const accessLog = new UserMeta({ ip, accessedAt: utcDate });
+    // Get current time in Israel time zone as string
+    const israelTime = moment().tz('Asia/Jerusalem').format('YYYY-MM-DD HH:mm:ss');
+
+    // Save to DB
+    const accessLog = new UserMeta({ ip, accessedAt: israelTime });
     await accessLog.save();
 
-    // Response
+    // Return data
     res.json({
       stock: response.data[0],
       visitor: {
@@ -54,18 +61,15 @@ const fetchAppleStock = async (req, res) => {
         accessedAt: israelTime
       }
     });
-
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ error: 'Failed to fetch Apple stock data' });
   }
 };
 
-// Routes
 app.get('/api/snp', fetchAppleStock);
-app.get('/api/sp500', fetchAppleStock); // compatibility route
+app.get('/api/sp500', fetchAppleStock);
 
-// Start server
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Backend running on port ${PORT}`);
