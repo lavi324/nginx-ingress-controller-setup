@@ -18,3 +18,5 @@ Create Kubernetes files with the new Docker images and apply.
 Search for the pods services external IP's and see that every thing is working (the frontend web page, the backand REST API and the Mogno DB collection.
 Now you can see that the app codes are working properly and can start to add more automation infrastructures.
 Create a Helm directory with the Chart.yaml and the frontend app kubernetes file.
+Add the Jenkinsfile (CI pipeline).
+Add a directory with the Jenkins pod agent's docker file (to ensure that in the pipeline each agent pod starts with all tools already installed).
