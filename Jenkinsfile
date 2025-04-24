@@ -1,100 +1,68 @@
 pipeline {
-    agent {
-        kubernetes {
-            inheritFrom 'docker-image-build'
-            idleMinutes 5
-            yamlFile 'Build-pod.yaml'
-            defaultContainer 'dind'
-        }
+  agent any
+
+  environment {
+    DOCKER_REPO     = 'lavi324/public1-frontend'
+    HELM_OCI_REG    = 'oci://docker.io/lavi324/public1-frontend-helm-chart'
+    DOCKER_CREDS    = 'docker-hub-creds'
+    GIT_CREDS       = 'github-creds'
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        git url: 'https://github.com/lavi324/Public1.git',
+            credentialsId: "${GIT_CREDS}"
+      }
     }
 
-    tools {
-        nodejs "new"
+    stage('Bump Versions') {
+      steps {
+        script {
+          // Run the external increment script and capture output :contentReference[oaicite:5]{index=5}
+          def props = sh(
+            script: 'scripts/increment_version.sh',
+            returnStdout: true
+          ).trim()
+
+          // Parse lines like IMAGE_TAG=1.1 and CHART_VERSION=1.0.1
+          props.split("\n").each { line ->
+            def (k, v) = line.tokenize('=')
+            env."${k}" = v
+          }
+        }
+      }
     }
 
-    environment {
-        DOCKER_REGISTRY = 'https://registry.hub.docker.com'
-        DOCKER_HUB_CREDENTIALS = credentials('dockerhublavi')
-        TAG = '1.1'
+    stage('Build & Push Docker Image') {
+      steps {
+        withCredentials([usernamePassword(
+          credentialsId: "${DOCKER_CREDS}",
+          usernameVariable: 'DOCKER_USER',
+          passwordVariable: 'DOCKER_PASS'
+        )]) {
+          sh '''
+            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+            docker build -t $DOCKER_REPO:${IMAGE_TAG} ./frontend   # build from frontend/ :contentReference[oaicite:6]{index=6}
+            docker push $DOCKER_REPO:${IMAGE_TAG}                   # push to Docker Hub :contentReference[oaicite:7]{index=7}
+          '''
+        }
+      }
     }
 
-    stages {
-        stage('Increment Versions') {
-            steps {
-                sh 'pwd'
-                sh 'chmod +x increment_versions.sh'
-                sh './increment_versions.sh'
-            }
-        }
-        stage('Push to GitHub') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'github', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_PASS')]) {
-                    sh '''
-                    git config --global user.email "lavialduby@gmail.com"
-                    git config --global user.name "lavi324"
-                    '''
-                    sh 'git config --global --add safe.directory /home/jenkins/agent/workspace/first'
-                    sh 'git checkout master'
-                    sh '''        
-                    git add .
-                    git commit -m "pipeline commit"
-                    git push https://${GITHUB_USER}:${GITHUB_PASS}@github.com/lavi324/one master 
-                    '''
-                }
-            }
-        }
-        stage('Build') {
-            steps {
-                dir('frontend') {
-                    sh 'npm install'
-                    sh 'npm run build'
-                }
-            }
-        }
-        stage('Test Docker') {
-            steps {
-                script {
-                    sh 'docker --version'
-                }
-            }
-        }
-        stage('Build Docker Image') {
-            steps {
-                dir('frontend') {
-                    echo 'start build docker image'
-                    sh "docker build -t lavi324/one-frontend:${TAG} ."
-                }   
-            }
-        }
-        stage('Push Docker Image') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhublavi', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh '''
-                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                    docker push lavi324/one-frontend:${TAG}
-                    '''
-                }
-            }
-        }
-        stage('Helm Package') {
-            steps {
-                sh 'helm package one-frontend-helm-chart'
-            }
-        }
-        stage('Helm Push') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhublavi', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh '''
-                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin  
-                    helm push one-frontend-helm-chart-0.1.4.tgz oci://registry-1.docker.io/lavi324
-                    '''
-                }   
-            }
-        }
+    stage('Package & Push Helm Chart') {
+      steps {
+        sh '''
+          helm lint Public1-frontend-helm-chart               # validate chart :contentReference[oaicite:8]{index=8}
+          helm package Public1-frontend-helm-chart            # produces *.tgz
+          helm push Public1-frontend-helm-chart-${CHART_VERSION}.tgz $HELM_OCI_REG  # OCI push :contentReference[oaicite:9]{index=9}
+        '''
+      }
     }
-    post {
-        success {
-            echo 'the pipeline was successfull.'
-        }
-    }
+  }
+
+  post {
+    success { echo '✅ CI pipeline completed.' }
+    failure { echo '❌ CI pipeline failed.' }
+  }
 }
