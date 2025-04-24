@@ -1,33 +1,34 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-set -euo pipefail
-
-# ── Helpers ─────────────────────────────────────────────────────────────────────
-# Increment image tag by +0.1 (e.g. 1.0 → 1.1)
+# Increment image tag
 increment_image_tag() {
-  local cur="$1"
-  printf "%.1f" "$(echo "$cur + 0.1" | bc)"  # bc for floats :contentReference[oaicite:2]{index=2}
+    local current_tag="$1"
+    local incremented_tag=$(echo "$current_tag + 0.1" | bc)
+    printf "%.1f" "$incremented_tag"
 }
 
-# Increment semver patch (e.g. 1.2.3 → 1.2.4)
-increment_chart_version() {
-  IFS='.' read -r major minor patch <<< "$1"
-  patch=$((patch + 1))
-  echo "${major}.${minor}.${patch}"
+# Increment helm chart version
+increment_helm_chart_version() {
+    local current_version="$1"
+    local major=$(echo "$current_version" | cut -d '.' -f 1)
+    local minor=$(echo "$current_version" | cut -d '.' -f 2)
+    local patch=$(echo "$current_version" | cut -d '.' -f 3)
+    ((patch++))
+    echo "$major.$minor.$patch"
 }
 
-# ── File Paths ─────────────────────────────────────────────────────────────────
-DEPLOY_YAML="Public1-frontend-helm-chart/templates/deployment.yaml"
-CHART_YAML="Public1-frontend-helm-chart/Chart.yaml"
+# Paths
+frontend_yaml_path="public1-frontend-helm-chart/templates/frontend-app.yaml"
+chart_yaml_path="public1-frontend-helm-chart/Chart.yaml"
 
-# ── Step 1: Bump Docker image tag in deployment.yaml ───────────────────────────
-curTag=$(awk '/image:/ {print $2}' "$DEPLOY_YAML" | cut -d':' -f2)
-newTag=$(increment_image_tag "$curTag")
-sed -i "s|:${curTag}|:${newTag}|g" "$DEPLOY_YAML"
-echo "IMAGE_TAG=${newTag}"
+# Step 1: Increment image tag in frontend-app.yaml
+current_tag=$(awk '/image:/ {print $2}' "$frontend_yaml_path" | cut -d ':' -f 2)
+new_tag=$(increment_image_tag "$current_tag")
+sed -i "s|image: lavi324/public1-frontend:$current_tag|image: lavi324/public1-frontend:$new_tag|" "$frontend_yaml_path"
+echo "Image tag updated from $current_tag to $new_tag in frontend-app.yaml."
 
-# ── Step 2: Bump Helm chart version in Chart.yaml ──────────────────────────────
-curVer=$(grep '^version:' "$CHART_YAML" | awk '{print $2}')
-newVer=$(increment_chart_version "$curVer")
-sed -i "s|version: ${curVer}|version: ${newVer}|g" "$CHART_YAML"
-echo "CHART_VERSION=${newVer}"
+# Step 2: Increment Helm chart version in Chart.yaml
+current_chart_version=$(awk '/version:/ {print $2}' "$chart_yaml_path")
+new_chart_version=$(increment_helm_chart_version "$current_chart_version")
+sed -i "s|version: $current_chart_version|version: $new_chart_version|" "$chart_yaml_path"
+echo "Helm chart version updated from $current_chart_version to $new_chart_version in Chart.yaml."

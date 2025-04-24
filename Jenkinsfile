@@ -1,68 +1,82 @@
 pipeline {
-  agent any
+    agent any
 
-  environment {
-    DOCKER_REPO     = 'lavi324/public1-frontend'
-    HELM_OCI_REG    = 'oci://docker.io/lavi324/public1-frontend-helm-chart'
-    DOCKER_CREDS    = 'docker-hub-creds'
-    GIT_CREDS       = 'github-creds'
-  }
-
-  stages {
-    stage('Checkout') {
-      steps {
-        git url: 'https://github.com/lavi324/Public1.git',
-            credentialsId: "${GIT_CREDS}"
-      }
+    environment {
+        DOCKER_REPO = 'lavi324/public1-frontend'
+        HELM_REPO = 'oci://lavi324/public1-frontend-helm-chart'
+        IMAGE_NAME = 'public1-frontend'
+        CHART_NAME = 'public1-frontend-helm-chart'
+        GIT_CREDENTIALS_ID = 'github'
+        DOCKER_CREDENTIALS_ID = 'dockerhub'
+        USER_EMAIL = 'lavialduby@gmail.com'
     }
 
-    stage('Bump Versions') {
-      steps {
-        script {
-          // Run the external increment script and capture output :contentReference[oaicite:5]{index=5}
-          def props = sh(
-            script: 'scripts/increment_version.sh',
-            returnStdout: true
-          ).trim()
-
-          // Parse lines like IMAGE_TAG=1.1 and CHART_VERSION=1.0.1
-          props.split("\n").each { line ->
-            def (k, v) = line.tokenize('=')
-            env."${k}" = v
-          }
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
         }
-      }
-    }
 
-    stage('Build & Push Docker Image') {
-      steps {
-        withCredentials([usernamePassword(
-          credentialsId: "${DOCKER_CREDS}",
-          usernameVariable: 'DOCKER_USER',
-          passwordVariable: 'DOCKER_PASS'
-        )]) {
-          sh '''
-            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-            docker build -t $DOCKER_REPO:${IMAGE_TAG} ./frontend   # build from frontend/ :contentReference[oaicite:6]{index=6}
-            docker push $DOCKER_REPO:${IMAGE_TAG}                   # push to Docker Hub :contentReference[oaicite:7]{index=7}
-          '''
+        stage('Increment Version') {
+            steps {
+                sh 'chmod +x scripts/increment_version.sh'
+                sh './scripts/increment_version.sh'
+            }
         }
-      }
-    }
 
-    stage('Package & Push Helm Chart') {
-      steps {
-        sh '''
-          helm lint Public1-frontend-helm-chart               # validate chart :contentReference[oaicite:8]{index=8}
-          helm package Public1-frontend-helm-chart            # produces *.tgz
-          helm push Public1-frontend-helm-chart-${CHART_VERSION}.tgz $HELM_OCI_REG  # OCI push :contentReference[oaicite:9]{index=9}
-        '''
-      }
-    }
-  }
+        stage('Git Commit & Push') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: "${GIT_CREDENTIALS_ID}", usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                    sh '''
+                        git config user.name "$GIT_USERNAME"
+                        git config user.email "$USER_EMAIL"
+                        git add .
+                        git commit -m "chore: increment versions"
+                        git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/lavi324/Public1.git HEAD:main
+                    '''
+                }
+            }
+        }
 
-  post {
-    success { echo '✅ CI pipeline completed.' }
-    failure { echo '❌ CI pipeline failed.' }
-  }
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    def newTag = sh(script: "awk -F ':' '/image:/ {print \$2}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' '", returnStdout: true).trim()
+                    sh "docker build -t ${DOCKER_REPO}:${newTag} frontend/"
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    sh '''
+                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+                        docker push ${DOCKER_REPO}:${newTag}
+                    '''
+                }
+            }
+        }
+
+        stage('Package Helm Chart') {
+            steps {
+                script {
+                    def newTag = sh(script: "awk -F ':' '/image:/ {print \$2}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' '", returnStdout: true).trim()
+                    sh "helm package public1-frontend-helm-chart --version ${newTag} --app-version ${newTag}"
+                }
+            }
+        }
+
+        stage('Push Helm Chart') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    sh '''
+                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+                        helm push ${CHART_NAME}-${newTag}.tgz ${HELM_REPO}
+                    '''
+                }
+            }
+        }
+    }
 }
