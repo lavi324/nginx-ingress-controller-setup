@@ -15,3 +15,6 @@ Set up the frontend file and the Docker file.
 Create 3 Docker hub repositories (frontend, backend and frontend Helm chart).
 Build and Push the Docker images.
 Create Kubernetes files with the new Docker images and apply.
+Search for the pods services external IP's and see that every thing is working (the frontend web page, the backand REST API and the Mogno DB collection.
+Now you can see that the app codes are working properly and can start to add more automation infrastructures.
+Create a Helm directory with the Chart.yaml and the frontend app kubernetes file.
