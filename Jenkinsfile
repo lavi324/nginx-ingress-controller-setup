@@ -10,7 +10,7 @@ metadata:
   labels:
     jenkins: gke-agent
 spec:
-  serviceAccountName: jenkins-agent-sa
+  serviceAccountName: jenkins
   containers:
     - name: jnlp
       image: jenkins/inbound-agent:4.11-4-jdk11
