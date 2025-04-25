@@ -37,17 +37,21 @@ spec:
   }
 
   stages {
-    stage('Checkout')   { steps { checkout scm } }
+    stage('Checkout') {
+      steps { checkout scm }
+    }
+
     stage('Increment Version') {
       steps {
         sh 'chmod +x scripts/increment_version.sh'
         sh './scripts/increment_version.sh'
       }
     }
+
     stage('Git Commit & Push') {
       steps {
         withCredentials([usernamePassword(
-          credentialsId: GIT_CREDENTIALS_ID,
+          credentialsId: "${GIT_CREDENTIALS_ID}",
           usernameVariable: 'GIT_USERNAME',
           passwordVariable: 'GIT_PASSWORD'
         )]) {
@@ -61,15 +65,20 @@ spec:
         }
       }
     }
+
     stage('Build & Push Docker Image') {
       steps {
         script {
+          // note: AWK is in a single-quoted string, so $2 is literal
           def newTag = sh(
-            script: "awk -F ':' '/image:/ {print \\$2}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' '",
+            script: '''
+              awk -F ':' '/image:/ {print $2}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' '
+            ''',
             returnStdout: true
           ).trim()
+
           withCredentials([usernamePassword(
-            credentialsId: DOCKER_CREDENTIALS_ID,
+            credentialsId: "${DOCKER_CREDENTIALS_ID}",
             usernameVariable: 'DOCKER_USERNAME',
             passwordVariable: 'DOCKER_PASSWORD'
           )]) {
@@ -82,15 +91,20 @@ spec:
         }
       }
     }
+
     stage('Package & Push Helm Chart') {
       steps {
         script {
+          // same fix here
           def newTag = sh(
-            script: "awk -F ':' '/image:/ {print \\$2}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' '",
+            script: '''
+              awk -F ':' '/image:/ {print $2}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' '
+            ''',
             returnStdout: true
           ).trim()
+
           withCredentials([usernamePassword(
-            credentialsId: DOCKER_CREDENTIALS_ID,
+            credentialsId: "${DOCKER_CREDENTIALS_ID}",
             usernameVariable: 'DOCKER_USERNAME',
             passwordVariable: 'DOCKER_PASSWORD'
           )]) {
