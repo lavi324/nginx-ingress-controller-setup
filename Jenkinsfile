@@ -142,8 +142,7 @@ spec:
                 --version ${chartVersion}
 
               # push the chart to your DockerHub OCI repo
-              helm push public1-frontend-helm-chart-${chartVersion}.tgz \
-                ${HELM_REPO_URL}
+              helm push public1-frontend-helm-chart-${chartVersion}.tgz oci://registry-1.docker.io/lavi324
             """
           }
         }
