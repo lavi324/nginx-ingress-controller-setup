@@ -39,9 +39,7 @@ spec:
     }
   }
 
-  options {
-    skipDefaultCheckout()
-  }
+  options { skipDefaultCheckout() }
 
   environment {
     GIT_CREDENTIALS_ID    = 'github'
@@ -63,26 +61,15 @@ spec:
               passwordVariable: 'GIT_PASSWORD'
             )]) {
               sh '''
-                # Clean the workspace
                 rm -rf *
-
-                # Clone with credentials
                 git clone https://$GIT_USERNAME:$GIT_PASSWORD@github.com/lavi324/Public1.git .
-
-                # Mark this directory safe for Git
                 git config --global --add safe.directory "$PWD"
-
-                # Set local Git identity
                 git config user.name "$GIT_USERNAME"
                 git config user.email "$USER_EMAIL"
-
-                # Bump image and chart versions
                 chmod +x scripts/increment_version.sh
                 ./scripts/increment_version.sh
-
-                # Commit and push changes
                 git add public1-frontend-helm-chart/templates/frontend-app.yaml \
-                         public1-frontend-helm-chart/Chart.yaml
+                        public1-frontend-helm-chart/Chart.yaml
                 git commit -m "chore: increment versions"
                 git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/lavi324/Public1.git HEAD:main
               '''
@@ -98,7 +85,8 @@ spec:
           script {
             def newTag = sh(
               script: '''
-                awk -F ':' '/image:/ {print $2}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' '
+                awk -F ':' '/image:/ {print $NF}' public1-frontend-helm-chart/templates/frontend-app.yaml \
+                  | tr -d '" '
               ''',
               returnStdout: true
             ).trim()
@@ -125,7 +113,8 @@ spec:
           script {
             def newTag = sh(
               script: '''
-                awk -F ':' '/image:/ {print $2}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' '
+                awk -F ':' '/image:/ {print $NF}' public1-frontend-helm-chart/templates/frontend-app.yaml \
+                  | tr -d '" '
               ''',
               returnStdout: true
             ).trim()
