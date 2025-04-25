@@ -58,12 +58,12 @@ spec:
   options { skipDefaultCheckout() }
 
   environment {
-    GIT_CREDENTIALS_ID    = 'github'
-    DOCKER_CREDENTIALS_ID = 'dockerhub'
+    GIT_CREDENTIALS_ID    = 'github-creds'
+    DOCKER_CREDENTIALS_ID = 'dockerhub-creds'
     USER_EMAIL            = 'lavialduby@gmail.com'
 
     DOCKER_REPO           = 'lavi324/public1-frontend'
-    HELM_REPO             = 'oci://registry-1.docker.io/lavi324/public1-frontend-helm-chart'
+    HELM_REPO_URL         = 'oci://registry-1.docker.io/lavi324/public1-frontend-helm-chart'
   }
 
   stages {
@@ -72,21 +72,22 @@ spec:
         container('gke-agent') {
           withCredentials([usernamePassword(
             credentialsId: GIT_CREDENTIALS_ID,
-            usernameVariable: 'GIT_USERNAME',
-            passwordVariable: 'GIT_PASSWORD'
+            usernameVariable: 'GIT_USER',
+            passwordVariable: 'GIT_TOKEN'
           )]) {
             sh '''
               rm -rf *
-              git clone https://$GIT_USERNAME:$GIT_PASSWORD@github.com/lavi324/Public1.git .
+              git clone https://$GIT_USER:$GIT_TOKEN@github.com/lavi324/Public1.git .
               git config --global --add safe.directory "$PWD"
-              git config user.name "$GIT_USERNAME"
+              git config user.name "$GIT_USER"
               git config user.email "$USER_EMAIL"
               chmod +x scripts/increment_version.sh
               ./scripts/increment_version.sh
+
               git add public1-frontend-helm-chart/templates/frontend-app.yaml \
                       public1-frontend-helm-chart/Chart.yaml
               git commit -m "chore: increment versions"
-              git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/lavi324/Public1.git HEAD:main
+              git push https://$GIT_USER:$GIT_TOKEN@github.com/lavi324/Public1.git HEAD:main
             '''
           }
         }
@@ -97,18 +98,19 @@ spec:
       steps {
         container('gke-agent') {
           script {
+            // pick up the new image tag from your bumped Helm template
             def newTag = sh(
-              script: "awk -F':' '/image:/ {print \$NF}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d '\" '",
+              script: "awk -F':' '/image:/ {print \$NF}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' \"'",
               returnStdout: true
             ).trim()
 
             withCredentials([usernamePassword(
               credentialsId: DOCKER_CREDENTIALS_ID,
-              usernameVariable: 'DOCKER_USERNAME',
-              passwordVariable: 'DOCKER_PASSWORD'
+              usernameVariable: 'DOCKER_USER',
+              passwordVariable: 'DOCKER_PASS'
             )]) {
               sh """
-                echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+                echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                 docker build -t ${DOCKER_REPO}:${newTag} frontend/
                 docker push ${DOCKER_REPO}:${newTag}
               """
@@ -122,27 +124,27 @@ spec:
       steps {
         container('gke-agent') {
           script {
-            def newTag = sh(
-              script: "awk -F':' '/image:/ {print \$NF}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d '\" '",
+            def chartVersion = sh(
+              script: "awk -F':' '/image:/ {print \$NF}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' \"'",
               returnStdout: true
             ).trim()
 
             withCredentials([usernamePassword(
               credentialsId: DOCKER_CREDENTIALS_ID,
-              usernameVariable: 'DOCKER_USERNAME',
-              passwordVariable: 'DOCKER_PASSWORD'
+              usernameVariable: 'DOCKER_USER',
+              passwordVariable: 'DOCKER_PASS'
             )]) {
               sh """
-                # ensure Docker Hub login is in place
-                echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+                # log in to Docker Hub registry for OCI
+                echo "$DOCKER_PASS" | helm registry login registry-1.docker.io -u "$DOCKER_USER" --password-stdin
 
-                # package chart
-                helm package public1-frontend-helm-chart \\
-                  --version ${newTag} \\
-                  --app-version ${newTag}
+                # package the chart with the new version
+                helm package public1-frontend-helm-chart \
+                  --version ${chartVersion} \
+                  --app-version ${chartVersion}
 
-                # push to OCI registry on Docker Hub
-                helm push public1-frontend-helm-chart-${newTag}.tgz ${HELM_REPO}
+                # push the packaged chart up to your OCI repo on DockerHub
+                helm push public1-frontend-helm-chart-${chartVersion}.tgz ${HELM_REPO_URL}
               """
             }
           }
