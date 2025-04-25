@@ -61,6 +61,7 @@ spec:
     GIT_CREDENTIALS_ID    = 'github'
     DOCKER_CREDENTIALS_ID = 'dockerhub'
     USER_EMAIL            = 'lavialduby@gmail.com'
+
     DOCKER_REPO           = 'lavi324/public1-frontend'
     HELM_REPO             = 'oci://registry-1.docker.io/lavi324/public1-frontend-helm-chart'
     CHART_NAME            = 'public1-frontend-helm-chart'
@@ -101,7 +102,8 @@ spec:
           script {
             def newTag = sh(
               script: '''
-                awk -F ':' '/image:/ {print $NF}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d '" '
+                awk -F':' '/image:/ {print \$NF}' public1-frontend-helm-chart/templates/frontend-app.yaml \
+                  | tr -d '" '
               ''',
               returnStdout: true
             ).trim()
@@ -113,7 +115,7 @@ spec:
             )]) {
               sh """
                 docker build -t ${DOCKER_REPO}:${newTag} frontend/
-                echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+                echo "$DOCKER_PASSWORD" | docker login registry-1.docker.io -u "$DOCKER_USERNAME" --password-stdin
                 docker push ${DOCKER_REPO}:${newTag}
               """
             }
@@ -128,7 +130,8 @@ spec:
           script {
             def newTag = sh(
               script: '''
-                awk -F ':' '/image:/ {print $NF}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d '" '
+                awk -F':' '/image:/ {print \$NF}' public1-frontend-helm-chart/templates/frontend-app.yaml \
+                  | tr -d '" '
               ''',
               returnStdout: true
             ).trim()
@@ -139,10 +142,19 @@ spec:
               passwordVariable: 'DOCKER_PASSWORD'
             )]) {
               sh """
-                helm registry login registry-1.docker.io \\
-                  -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
-                helm package public1-frontend-helm-chart --version ${newTag} --app-version ${newTag}
-                helm push public1-frontend-helm-chart-${newTag}.tgz ${HELM_REPO}
+                # 1) Docker login (so Helm’s OCI commands can reuse it)
+                echo "$DOCKER_PASSWORD" | docker login registry-1.docker.io -u "$DOCKER_USERNAME" --password-stdin
+
+                # 2) Create the chart package
+                helm package public1-frontend-helm-chart \
+                  --version ${newTag} \
+                  --app-version ${newTag}
+
+                # 3) Save that .tgz into the Docker‐Hub OCI registry
+                helm chart save public1-frontend-helm-chart-${newTag}.tgz ${HELM_REPO} --version ${newTag}
+
+                # 4) Push it
+                helm chart push ${HELM_REPO}:${newTag}
               """
             }
           }
