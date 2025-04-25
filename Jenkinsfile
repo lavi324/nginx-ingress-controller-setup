@@ -38,7 +38,7 @@ spec:
       volumeMounts:
         - name: docker-sock
           mountPath: /var/run
-          
+
     - name: gke-agent
       image: docker.io/lavi324/gke_agent:1.0
       command: ['cat']
@@ -62,7 +62,7 @@ spec:
     DOCKER_CREDENTIALS_ID = 'dockerhub'
     USER_EMAIL            = 'lavialduby@gmail.com'
     DOCKER_REPO           = 'lavi324/public1-frontend'
-    HELM_REPO             = 'oci://docker.io/lavi324/public1-frontend-helm-chart'
+    HELM_REPO             = 'oci://registry-1.docker.io/lavi324/public1-frontend-helm-chart'
     CHART_NAME            = 'public1-frontend-helm-chart'
   }
 
@@ -139,7 +139,8 @@ spec:
               passwordVariable: 'DOCKER_PASSWORD'
             )]) {
               sh """
-                helm registry login docker.io -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+                helm registry login registry-1.docker.io \\
+                  -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
                 helm package public1-frontend-helm-chart --version ${newTag} --app-version ${newTag}
                 helm push public1-frontend-helm-chart-${newTag}.tgz ${HELM_REPO}
               """
