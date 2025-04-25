@@ -13,7 +13,8 @@ spec:
   serviceAccountName: jenkins
   containers:
     - name: jnlp
-      image: jenkins/inbound-agent:3107.v665000b_51092-15
+      # Switch to a JDK 17–based agent to support class file v61.0
+      image: jenkins/inbound-agent:latest-jdk17
       args: ['\$(JENKINS_SECRET)', '\$(JENKINS_NAME)']
       resources:
         limits:
@@ -73,7 +74,6 @@ spec:
     stage('Build & Push Docker Image') {
       steps {
         script {
-          // extract newTag without Groovy interpolating $2
           def newTag = sh(
             script: '''
               awk -F ':' '/image:/ {print $2}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' '
