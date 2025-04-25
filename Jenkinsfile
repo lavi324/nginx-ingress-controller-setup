@@ -14,6 +14,12 @@ spec:
     fsGroup: 1000
   serviceAccountName: jenkins
 
+  volumes:
+    - name: workspace
+      emptyDir: {}
+    - name: docker-sock
+      emptyDir: {}
+
   containers:
     - name: jnlp
       image: jenkins/inbound-agent:latest-jdk17
@@ -30,8 +36,9 @@ spec:
       securityContext:
         privileged: true
       volumeMounts:
+        # mount the shared volume at /var/run so the socket file lands here
         - name: docker-sock
-          mountPath: /var/run/docker.sock
+          mountPath: /var/run
 
     - name: gke-agent
       image: docker.io/lavi324/gke_agent:1.0
@@ -43,14 +50,9 @@ spec:
       volumeMounts:
         - name: workspace
           mountPath: /home/jenkins/agent
+        # same docker-sock at /var/run so we see the socket
         - name: docker-sock
-          mountPath: /var/run/docker.sock
-
-  volumes:
-    - name: workspace
-      emptyDir: {}
-    - name: docker-sock
-      emptyDir: {}
+          mountPath: /var/run
 """
     }
   }
