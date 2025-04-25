@@ -58,8 +58,8 @@ spec:
   options { skipDefaultCheckout() }
 
   environment {
-    GIT_CREDENTIALS_ID    = 'github-creds'
-    DOCKER_CREDENTIALS_ID = 'dockerhub-creds'
+    GIT_CREDENTIALS_ID    = 'github'
+    DOCKER_CREDENTIALS_ID = 'dockerhub'
     USER_EMAIL            = 'lavialduby@gmail.com'
 
     DOCKER_REPO           = 'lavi324/public1-frontend'
@@ -141,7 +141,6 @@ spec:
                 # package the chart with the new version
                 helm package public1-frontend-helm-chart \
                   --version ${chartVersion} \
-                  --app-version ${chartVersion}
 
                 # push the packaged chart up to your OCI repo on DockerHub
                 helm push public1-frontend-helm-chart-${chartVersion}.tgz ${HELM_REPO_URL}
