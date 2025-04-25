@@ -23,14 +23,15 @@ spec:
       resources:
         limits:
           memory: 512Mi
+
     - name: gke-agent
       image: docker.io/lavi324/gke_agent:1.0
-      imagePullPolicy: IfNotPresent
       command: ['cat']
       tty: true
       volumeMounts:
         - name: workspace-volume
           mountPath: /home/jenkins/agent
+
   volumes:
     - name: workspace-volume
       emptyDir: {}
@@ -39,16 +40,17 @@ spec:
   }
 
   options {
+    // we’re doing our own clone
     skipDefaultCheckout()
   }
 
   environment {
     GIT_CREDENTIALS_ID    = 'github'
     DOCKER_CREDENTIALS_ID = 'dockerhub'
-    USER_EMAIL            = 'lavialduby@gmail.com'
-    DOCKER_REPO           = 'lavi324/public1-frontend'
-    HELM_REPO             = 'oci://lavi324/public1-frontend-helm-chart'
-    CHART_NAME            = 'public1-frontend-helm-chart'
+    USER_EMAIL           = 'lavialduby@gmail.com'
+    DOCKER_REPO          = 'lavi324/public1-frontend'
+    HELM_REPO            = 'oci://lavi324/public1-frontend-helm-chart'
+    CHART_NAME           = 'public1-frontend-helm-chart'
   }
 
   stages {
@@ -56,14 +58,17 @@ spec:
       steps {
         container('gke-agent') {
           dir("${WORKSPACE}") {
-            // 1. Clone repo into shared volume
-            checkout scm
+            // clean out any leftovers
+            sh 'rm -rf *'
 
-            // 2. Increment both tags
+            // clone into this same volume
+            git branch: 'main', url: 'https://github.com/lavi324/Public1.git'
+
+            // bump versions
             sh 'chmod +x scripts/increment_version.sh'
             sh './scripts/increment_version.sh'
 
-            // 3. Commit & push from the same directory
+            // commit & push from here
             withCredentials([usernamePassword(
               credentialsId: GIT_CREDENTIALS_ID,
               usernameVariable: 'GIT_USERNAME',
