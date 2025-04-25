@@ -40,7 +40,7 @@ spec:
   }
 
   options {
-    // we’re doing our own clone
+    // we do our own shell-based clone
     skipDefaultCheckout()
   }
 
@@ -58,29 +58,37 @@ spec:
       steps {
         container('gke-agent') {
           dir("${WORKSPACE}") {
-            // clean out any leftovers
+            // clean up any previous checkout
             sh 'rm -rf *'
 
-            // clone into this same volume
-            git branch: 'main', url: 'https://github.com/lavi324/Public1.git'
-
-            // bump versions
-            sh 'chmod +x scripts/increment_version.sh'
-            sh './scripts/increment_version.sh'
-
-            // commit & push from here
+            // manual clone with credentials so .git is here
             withCredentials([usernamePassword(
               credentialsId: GIT_CREDENTIALS_ID,
               usernameVariable: 'GIT_USERNAME',
               passwordVariable: 'GIT_PASSWORD'
             )]) {
               sh '''
+                git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/lavi324/Public1.git .
                 git config user.name "$GIT_USERNAME"
                 git config user.email "$USER_EMAIL"
+              '''
+            }
+
+            // bump both tags
+            sh 'chmod +x scripts/increment_version.sh'
+            sh './scripts/increment_version.sh'
+
+            // commit & push from same directory
+            withCredentials([usernamePassword(
+              credentialsId: GIT_CREDENTIALS_ID,
+              usernameVariable: 'GIT_USERNAME',
+              passwordVariable: 'GIT_PASSWORD'
+            )]) {
+              sh '''
                 git add public1-frontend-helm-chart/templates/frontend-app.yaml \
                          public1-frontend-helm-chart/Chart.yaml
                 git commit -m "chore: increment versions"
-                git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/lavi324/Public1.git HEAD:main
+                git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/lavi324/Public1.git HEAD:main
               '''
             }
           }
@@ -94,11 +102,11 @@ spec:
           script {
             def newTag = sh(
               script: '''
-                awk -F ':' '/image:/ {print $2}' public1-frontend-helm-chart/templates/frontend-app.yaml \
-                  | tr -d ' '
+                awk -F ':' '/image:/ {print $2}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' '
               ''',
               returnStdout: true
             ).trim()
+
             withCredentials([usernamePassword(
               credentialsId: DOCKER_CREDENTIALS_ID,
               usernameVariable: 'DOCKER_USERNAME',
@@ -121,11 +129,11 @@ spec:
           script {
             def newTag = sh(
               script: '''
-                awk -F ':' '/image:/ {print $2}' public1-frontend-helm-chart/templates/frontend-app.yaml \
-                  | tr -d ' '
+                awk -F ':' '/image:/ {print $2}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' '
               ''',
               returnStdout: true
             ).trim()
+
             withCredentials([usernamePassword(
               credentialsId: DOCKER_CREDENTIALS_ID,
               usernameVariable: 'DOCKER_USERNAME',
