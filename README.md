@@ -7,12 +7,12 @@ Plan and Apply Terraform script.
 Access Your API Key in https://site.financialmodelingprep.com/developer/docs/dashboard
 Create two directories called "backend" and "frontend".
 Install Express (backend web application framework for building RESTful APIs with Node.js) in the backend directory and ensure that all the default folder Structure were created.
-Install axios (HTTP Client for node.js and the browser), cors(security mechanism implemented by web browsers to prevent unauthorized access to resources on a web page from different origins) and mongoose (Object Data Modeling library for MongoDB).
+Install axios (HTTP Client for node.js and the browser), cors (security mechanism implemented by web browsers to prevent unauthorized access to resources on a web page from different origins) and mongoose (Object Data Modeling library for MongoDB).
 Set up the backend file and the Docker file.
 Install React (JavaScript library for building user interfaces) in the frontendend directory and ensure that all the default folder Structure were created.
 Install axios again.
 Set up the frontend file and the Docker file.
-Create 3 Docker hub repositories (frontend, backend and frontend Helm chart).
+Create 3 Docker hub repositories (frontend (test), backend and frontend Helm chart).
 Build and Push the Docker images.
 Create Kubernetes files with the new Docker images and apply.
 Search for the pods services external IP's and see that every thing is working (the frontend web page, the backand REST API and the Mogno DB collection.
@@ -21,4 +21,5 @@ Create a Helm directory with the Chart.yaml and the frontend app kubernetes file
 Add the Jenkinsfile (CI pipeline).
 Add a directory with the Jenkins pod agent's docker file (to ensure that in the pipeline each agent pod starts with all tools already installed).
 Add a scripts directory and insert the increment tags script.
-Change the Jenkins app Kubernetes service type to LB (to get an external IP for the Jenkins UI).
+Change the Jenkins app Kubernetes service type to LB (to get an external IP for the Jenkins UI) and access.
+In the login page insert the user "admin" and search for the admin password with the command:                                                                                 kubectl get secret jenkins -n jenkins   -o jsonpath="{.data.jenkins-admin-password}" | base64 --decode; echo
