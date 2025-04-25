@@ -21,3 +21,4 @@ Create a Helm directory with the Chart.yaml and the frontend app kubernetes file
 Add the Jenkinsfile (CI pipeline).
 Add a directory with the Jenkins pod agent's docker file (to ensure that in the pipeline each agent pod starts with all tools already installed).
 Add a scripts directory and insert the increment tags script.
+Change the Jenkins app Kubernetes service type to LB (to get an external IP for the Jenkins UI).
