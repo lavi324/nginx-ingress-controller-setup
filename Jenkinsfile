@@ -13,16 +13,16 @@ spec:
   serviceAccountName: jenkins
   containers:
     - name: jnlp
-      image: jenkins/inbound-agent:4.11-4-jdk11
+      image: jenkins/inbound-agent:4.13-1-jdk11
       args: ['\$(JENKINS_SECRET)', '\$(JENKINS_NAME)']
       resources:
         limits:
           memory: 512Mi
+
     - name: gke-agent
       image: docker.io/lavi324/gke_agent:1.0
       imagePullPolicy: IfNotPresent
-      command:
-        - cat
+      command: ['cat']
       tty: true
 """
     }
@@ -37,21 +37,17 @@ spec:
   }
 
   stages {
-    stage('Checkout') {
-      steps { checkout scm }
-    }
-
+    stage('Checkout')   { steps { checkout scm } }
     stage('Increment Version') {
       steps {
         sh 'chmod +x scripts/increment_version.sh'
         sh './scripts/increment_version.sh'
       }
     }
-
     stage('Git Commit & Push') {
       steps {
         withCredentials([usernamePassword(
-          credentialsId: "${GIT_CREDENTIALS_ID}",
+          credentialsId: GIT_CREDENTIALS_ID,
           usernameVariable: 'GIT_USERNAME',
           passwordVariable: 'GIT_PASSWORD'
         )]) {
@@ -65,17 +61,15 @@ spec:
         }
       }
     }
-
     stage('Build & Push Docker Image') {
       steps {
         script {
           def newTag = sh(
-            script: "awk -F ':' '/image:/ {print \$2}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' '",
+            script: "awk -F ':' '/image:/ {print \\$2}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' '",
             returnStdout: true
           ).trim()
-          // all steps run in the gke-agent container by default
           withCredentials([usernamePassword(
-            credentialsId: "${DOCKER_CREDENTIALS_ID}",
+            credentialsId: DOCKER_CREDENTIALS_ID,
             usernameVariable: 'DOCKER_USERNAME',
             passwordVariable: 'DOCKER_PASSWORD'
           )]) {
@@ -88,16 +82,15 @@ spec:
         }
       }
     }
-
     stage('Package & Push Helm Chart') {
       steps {
         script {
           def newTag = sh(
-            script: "awk -F ':' '/image:/ {print \$2}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' '",
+            script: "awk -F ':' '/image:/ {print \\$2}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' '",
             returnStdout: true
           ).trim()
           withCredentials([usernamePassword(
-            credentialsId: "${DOCKER_CREDENTIALS_ID}",
+            credentialsId: DOCKER_CREDENTIALS_ID,
             usernameVariable: 'DOCKER_USERNAME',
             passwordVariable: 'DOCKER_PASSWORD'
           )]) {
