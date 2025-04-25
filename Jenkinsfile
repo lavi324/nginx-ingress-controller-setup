@@ -39,7 +39,9 @@ spec:
     }
   }
 
-  options { skipDefaultCheckout() }
+  options {
+    skipDefaultCheckout()
+  }
 
   environment {
     GIT_CREDENTIALS_ID    = 'github'
@@ -55,36 +57,32 @@ spec:
       steps {
         container('gke-agent') {
           dir("${WORKSPACE}") {
-            // 1) Clean workspace
-            sh 'rm -rf *'
-
-            // 2) Clone the repo
-            withCredentials([usernamePassword(
-              credentialsId: GIT_CREDENTIALS_ID,
-              usernameVariable: 'GIT_USERNAME',
-              passwordVariable: 'GIT_PASSWORD'
-            )]) {
-              sh 'git clone https://$GIT_USERNAME:$GIT_PASSWORD@github.com/lavi324/Public1.git .'
-            }
-
-            // 3) Mark as safe and set local Git user
-            sh 'git config --global --add safe.directory "$PWD"'
-            sh 'git config user.name "$GIT_USERNAME"'
-            sh 'git config user.email "$USER_EMAIL"'
-
-            // 4) Bump both tags
-            sh 'chmod +x scripts/increment_version.sh'
-            sh './scripts/increment_version.sh'
-
-            // 5) Commit & push
             withCredentials([usernamePassword(
               credentialsId: GIT_CREDENTIALS_ID,
               usernameVariable: 'GIT_USERNAME',
               passwordVariable: 'GIT_PASSWORD'
             )]) {
               sh '''
+                # Clean the workspace
+                rm -rf *
+
+                # Clone with credentials
+                git clone https://$GIT_USERNAME:$GIT_PASSWORD@github.com/lavi324/Public1.git .
+
+                # Mark this directory safe for Git
+                git config --global --add safe.directory "$PWD"
+
+                # Set local Git identity
+                git config user.name "$GIT_USERNAME"
+                git config user.email "$USER_EMAIL"
+
+                # Bump image and chart versions
+                chmod +x scripts/increment_version.sh
+                ./scripts/increment_version.sh
+
+                # Commit and push changes
                 git add public1-frontend-helm-chart/templates/frontend-app.yaml \
-                        public1-frontend-helm-chart/Chart.yaml
+                         public1-frontend-helm-chart/Chart.yaml
                 git commit -m "chore: increment versions"
                 git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/lavi324/Public1.git HEAD:main
               '''
@@ -104,6 +102,7 @@ spec:
               ''',
               returnStdout: true
             ).trim()
+
             withCredentials([usernamePassword(
               credentialsId: DOCKER_CREDENTIALS_ID,
               usernameVariable: 'DOCKER_USERNAME',
@@ -130,6 +129,7 @@ spec:
               ''',
               returnStdout: true
             ).trim()
+
             withCredentials([usernamePassword(
               credentialsId: DOCKER_CREDENTIALS_ID,
               usernameVariable: 'DOCKER_USERNAME',
