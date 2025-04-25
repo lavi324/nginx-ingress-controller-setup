@@ -23,6 +23,7 @@ spec:
       resources:
         limits:
           memory: 512Mi
+
     - name: gke-agent
       image: docker.io/lavi324/gke_agent:1.0
       command: ['cat']
@@ -30,6 +31,7 @@ spec:
       volumeMounts:
         - name: workspace-volume
           mountPath: /home/jenkins/agent
+
   volumes:
     - name: workspace-volume
       emptyDir: {}
@@ -55,36 +57,37 @@ spec:
       steps {
         container('gke-agent') {
           dir("${WORKSPACE}") {
-            // Clean workspace
+            // 1) Clean workspace
             sh 'rm -rf *'
 
-            // Clone the repo into the same volume
+            // 2) Clone repo into this shared volume
             withCredentials([usernamePassword(
               credentialsId: GIT_CREDENTIALS_ID,
               usernameVariable: 'GIT_USERNAME',
               passwordVariable: 'GIT_PASSWORD'
             )]) {
-              sh """
-                git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/lavi324/Public1.git .
-              """
+              sh 'git clone https://$GIT_USERNAME:$GIT_PASSWORD@github.com/lavi324/Public1.git .'
             }
 
-            // Bump both tags
+            // 3) Mark workspace as safe for Git
+            sh 'git config --global --add safe.directory "$PWD"'
+
+            // 4) Bump tags
             sh 'chmod +x scripts/increment_version.sh'
             sh './scripts/increment_version.sh'
 
-            // Commit & push with inline author
+            // 5) Commit & push
             withCredentials([usernamePassword(
               credentialsId: GIT_CREDENTIALS_ID,
               usernameVariable: 'GIT_USERNAME',
               passwordVariable: 'GIT_PASSWORD'
             )]) {
-              sh """
-                git add public1-frontend-helm-chart/templates/frontend-app.yaml \\
+              sh '''
+                git add public1-frontend-helm-chart/templates/frontend-app.yaml \
                         public1-frontend-helm-chart/Chart.yaml
-                git commit -m "chore: increment versions" --author="$GIT_USERNAME <${USER_EMAIL}>"
-                git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/lavi324/Public1.git HEAD:main
-              """
+                git commit -m "chore: increment versions" --author="$GIT_USERNAME <$USER_EMAIL>"
+                git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/lavi324/Public1.git HEAD:main
+              '''
             }
           }
         }
@@ -97,7 +100,7 @@ spec:
           script {
             def newTag = sh(
               script: '''
-                awk -F ':' '/image:/ {print \$2}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' '
+                awk -F ':' '/image:/ {print $2}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' '
               ''',
               returnStdout: true
             ).trim()
@@ -124,7 +127,7 @@ spec:
           script {
             def newTag = sh(
               script: '''
-                awk -F ':' '/image:/ {print \$2}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' '
+                awk -F ':' '/image:/ {print $2}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' '
               ''',
               returnStdout: true
             ).trim()
