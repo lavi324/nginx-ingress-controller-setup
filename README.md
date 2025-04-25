@@ -15,7 +15,7 @@ Set up the frontend file and the Docker file.
 Create 3 Docker hub repositories (frontend (test), backend and frontend Helm chart).
 Build and Push the Docker images.
 Create Kubernetes files with the new Docker images and apply.
-Search for the pods services external IP's and see that every thing is working (the frontend web page, the backand REST API and the Mogno DB collection.
+Search for the pods services external IP's and see that the MERN codes are working (the frontend web page, the backand REST API and the Mogno DB collection.
 Now you can see that the app codes are working properly and can start to add more automation infrastructures.
 Create a Helm directory with the Chart.yaml and the frontend app kubernetes file.
 Add the Jenkinsfile (CI pipeline).
@@ -24,4 +24,6 @@ Add a scripts directory and insert the increment tags script.
 Change the Jenkins app Kubernetes service type to LB (to get an external IP for the Jenkins UI) and access.
 In the login page insert the user "admin" and search for the admin password with the command:                                                                                 kubectl get secret jenkins -n jenkins   -o jsonpath="{.data.jenkins-admin-password}" | base64 --decode; echo
 Download Kubernetes, Docker, Node and git plug-in's and configure the GitHub and DockerHub credentials.
-Create a pipeline and configure the project GitHub URL.
+Create a pipeline and configure the project's GitHub URL.
+Change the ArgoCD app Kubernetes service type to LB (same as Jenkins workflow) and access to the UI.
+
