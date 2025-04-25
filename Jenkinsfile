@@ -13,7 +13,7 @@ spec:
   serviceAccountName: jenkins
   containers:
     - name: jnlp
-      image: jenkins/inbound-agent:4.13-1-jdk11
+      image: jenkins/inbound-agent:3107.v665000b_51092-15
       args: ['\$(JENKINS_SECRET)', '\$(JENKINS_NAME)']
       resources:
         limits:
@@ -31,6 +31,8 @@ spec:
   environment {
     DOCKER_REPO           = 'lavi324/public1-frontend'
     HELM_REPO             = 'oci://lavi324/public1-frontend-helm-chart'
+    IMAGE_NAME            = 'public1-frontend'
+    CHART_NAME            = 'public1-frontend-helm-chart'
     GIT_CREDENTIALS_ID    = 'github'
     DOCKER_CREDENTIALS_ID = 'dockerhub'
     USER_EMAIL            = 'lavialduby@gmail.com'
@@ -38,7 +40,9 @@ spec:
 
   stages {
     stage('Checkout') {
-      steps { checkout scm }
+      steps {
+        checkout scm
+      }
     }
 
     stage('Increment Version') {
@@ -69,7 +73,7 @@ spec:
     stage('Build & Push Docker Image') {
       steps {
         script {
-          // note: AWK is in a single-quoted string, so $2 is literal
+          // extract newTag without Groovy interpolating $2
           def newTag = sh(
             script: '''
               awk -F ':' '/image:/ {print $2}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' '
@@ -95,7 +99,6 @@ spec:
     stage('Package & Push Helm Chart') {
       steps {
         script {
-          // same fix here
           def newTag = sh(
             script: '''
               awk -F ':' '/image:/ {print $2}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' '
@@ -111,7 +114,7 @@ spec:
             sh """
               helm package public1-frontend-helm-chart --version ${newTag} --app-version ${newTag}
               echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-              helm push public1-frontend-helm-chart-${newTag}.tgz ${HELM_REPO}
+              helm push ${CHART_NAME}-${newTag}.tgz ${HELM_REPO}
             """
           }
         }
