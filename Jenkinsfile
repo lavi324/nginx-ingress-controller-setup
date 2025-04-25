@@ -3,6 +3,7 @@ pipeline {
     kubernetes {
       label 'gke-agent'
       defaultContainer 'gke-agent'
+      // this yaml defines both containers plus the workspace volume
       yaml """
 apiVersion: v1
 kind: Pod
@@ -10,22 +11,34 @@ metadata:
   labels:
     jenkins: gke-agent
 spec:
+  # ensure the jenkins user (uid 1000) can write to the emptyDir
+  securityContext:
+    fsGroup: 1000
+
   serviceAccountName: jenkins
+
   containers:
     - name: jnlp
       image: jenkins/inbound-agent:latest-jdk17
-      args: ['\$(JENKINS_SECRET)','\$(JENKINS_NAME)']
+      args: ['\$(JENKINS_SECRET)', '\$(JENKINS_NAME)']
+      # mount the workspace-volume at the agent home
+      volumeMounts:
+        - name: workspace-volume
+          mountPath: /home/jenkins/agent
       resources:
         limits:
           memory: 512Mi
+
     - name: gke-agent
       image: docker.io/lavi324/gke_agent:1.0
       imagePullPolicy: IfNotPresent
       command: ['cat']
       tty: true
+      # same single mount here
       volumeMounts:
         - name: workspace-volume
-          mountPath: /home/jenkins/agent/workspace
+          mountPath: /home/jenkins/agent
+
   volumes:
     - name: workspace-volume
       emptyDir: {}
@@ -49,14 +62,14 @@ spec:
     stage('Checkout & Bump Versions') {
       steps {
         container('gke-agent') {
-          // 1) checkout into our pod
+          // 1) do the checkout inside the same workspace
           checkout scm
 
-          // 2) run the fixed script
+          // 2) bump via your fixed awk script
           sh 'chmod +x scripts/increment_version.sh'
           sh './scripts/increment_version.sh'
 
-          // 3) commit & push *from the same workspace*
+          // 3) commit & push from right here
           withCredentials([usernamePassword(
             credentialsId: GIT_CREDENTIALS_ID,
             usernameVariable: 'GIT_USERNAME',
