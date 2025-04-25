@@ -23,7 +23,6 @@ spec:
       resources:
         limits:
           memory: 512Mi
-
     - name: gke-agent
       image: docker.io/lavi324/gke_agent:1.0
       command: ['cat']
@@ -31,7 +30,6 @@ spec:
       volumeMounts:
         - name: workspace-volume
           mountPath: /home/jenkins/agent
-
   volumes:
     - name: workspace-volume
       emptyDir: {}
@@ -40,17 +38,16 @@ spec:
   }
 
   options {
-    // we do our own shell-based clone
     skipDefaultCheckout()
   }
 
   environment {
     GIT_CREDENTIALS_ID    = 'github'
     DOCKER_CREDENTIALS_ID = 'dockerhub'
-    USER_EMAIL           = 'lavialduby@gmail.com'
-    DOCKER_REPO          = 'lavi324/public1-frontend'
-    HELM_REPO            = 'oci://lavi324/public1-frontend-helm-chart'
-    CHART_NAME           = 'public1-frontend-helm-chart'
+    USER_EMAIL            = 'lavialduby@gmail.com'
+    DOCKER_REPO           = 'lavi324/public1-frontend'
+    HELM_REPO             = 'oci://lavi324/public1-frontend-helm-chart'
+    CHART_NAME            = 'public1-frontend-helm-chart'
   }
 
   stages {
@@ -58,38 +55,36 @@ spec:
       steps {
         container('gke-agent') {
           dir("${WORKSPACE}") {
-            // clean up any previous checkout
+            // Clean workspace
             sh 'rm -rf *'
 
-            // manual clone with credentials so .git is here
+            // Clone the repo into the same volume
             withCredentials([usernamePassword(
               credentialsId: GIT_CREDENTIALS_ID,
               usernameVariable: 'GIT_USERNAME',
               passwordVariable: 'GIT_PASSWORD'
             )]) {
-              sh '''
+              sh """
                 git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/lavi324/Public1.git .
-                git config user.name "$GIT_USERNAME"
-                git config user.email "$USER_EMAIL"
-              '''
+              """
             }
 
-            // bump both tags
+            // Bump both tags
             sh 'chmod +x scripts/increment_version.sh'
             sh './scripts/increment_version.sh'
 
-            // commit & push from same directory
+            // Commit & push with inline author
             withCredentials([usernamePassword(
               credentialsId: GIT_CREDENTIALS_ID,
               usernameVariable: 'GIT_USERNAME',
               passwordVariable: 'GIT_PASSWORD'
             )]) {
-              sh '''
-                git add public1-frontend-helm-chart/templates/frontend-app.yaml \
-                         public1-frontend-helm-chart/Chart.yaml
-                git commit -m "chore: increment versions"
+              sh """
+                git add public1-frontend-helm-chart/templates/frontend-app.yaml \\
+                        public1-frontend-helm-chart/Chart.yaml
+                git commit -m "chore: increment versions" --author="$GIT_USERNAME <${USER_EMAIL}>"
                 git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/lavi324/Public1.git HEAD:main
-              '''
+              """
             }
           }
         }
@@ -102,7 +97,7 @@ spec:
           script {
             def newTag = sh(
               script: '''
-                awk -F ':' '/image:/ {print $2}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' '
+                awk -F ':' '/image:/ {print \$2}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' '
               ''',
               returnStdout: true
             ).trim()
@@ -129,7 +124,7 @@ spec:
           script {
             def newTag = sh(
               script: '''
-                awk -F ':' '/image:/ {print $2}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' '
+                awk -F ':' '/image:/ {print \$2}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' '
               ''',
               returnStdout: true
             ).trim()
