@@ -13,27 +13,43 @@ spec:
   securityContext:
     fsGroup: 1000
   serviceAccountName: jenkins
+
   containers:
     - name: jnlp
       image: jenkins/inbound-agent:latest-jdk17
       args: ['\$(JENKINS_SECRET)','\$(JENKINS_NAME)']
       volumeMounts:
-        - name: workspace-volume
+        - name: workspace
           mountPath: /home/jenkins/agent
       resources:
         limits:
           memory: 512Mi
 
+    - name: docker-dind
+      image: docker:20.10.14-dind
+      securityContext:
+        privileged: true
+      volumeMounts:
+        - name: docker-sock
+          mountPath: /var/run/docker.sock
+
     - name: gke-agent
       image: docker.io/lavi324/gke_agent:1.0
       command: ['cat']
       tty: true
+      env:
+        - name: DOCKER_HOST
+          value: unix:///var/run/docker.sock
       volumeMounts:
-        - name: workspace-volume
+        - name: workspace
           mountPath: /home/jenkins/agent
+        - name: docker-sock
+          mountPath: /var/run/docker.sock
 
   volumes:
-    - name: workspace-volume
+    - name: workspace
+      emptyDir: {}
+    - name: docker-sock
       emptyDir: {}
 """
     }
@@ -85,8 +101,7 @@ spec:
           script {
             def newTag = sh(
               script: '''
-                awk -F ':' '/image:/ {print $NF}' public1-frontend-helm-chart/templates/frontend-app.yaml \
-                  | tr -d '" '
+                awk -F ':' '/image:/ {print $NF}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d '" '
               ''',
               returnStdout: true
             ).trim()
@@ -113,8 +128,7 @@ spec:
           script {
             def newTag = sh(
               script: '''
-                awk -F ':' '/image:/ {print $NF}' public1-frontend-helm-chart/templates/frontend-app.yaml \
-                  | tr -d '" '
+                awk -F ':' '/image:/ {print $NF}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d '" '
               ''',
               returnStdout: true
             ).trim()
