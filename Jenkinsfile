@@ -99,8 +99,8 @@ spec:
         container('gke-agent') {
           script {
             // pick up the new image tag from your bumped Helm template
-            def newTag = sh(
-              script: "awk -F':' '/image:/ {print \$NF}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' \"'",
+            newTag = sh(
+              script: "awk -F':' '/image:/ {print \$NF}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' \\\"'",
               returnStdout: true
             ).trim()
 
@@ -124,28 +124,27 @@ spec:
       steps {
         container('gke-agent') {
           script {
-            def chartVersion = sh(
-              script: "awk -F':' '/image:/ {print \$NF}' public1-frontend-helm-chart/templates/frontend-app.yaml | tr -d ' \"'",
-              returnStdout: true
-            ).trim()
+            // reuse the same tag for chart version
+            chartVersion = newTag
+          }
+          withCredentials([usernamePassword(
+            credentialsId: DOCKER_CREDENTIALS_ID,
+            usernameVariable: 'DOCKER_USER',
+            passwordVariable: 'DOCKER_PASS'
+          )]) {
+            sh """
+              # Helm OCI login to Docker Hub
+              echo "$DOCKER_PASS" | helm registry login registry-1.docker.io \
+                                      -u "$DOCKER_USER" --password-stdin
 
-            withCredentials([usernamePassword(
-              credentialsId: DOCKER_CREDENTIALS_ID,
-              usernameVariable: 'DOCKER_USER',
-              passwordVariable: 'DOCKER_PASS'
-            )]) {
-              sh """
-                # log in to Docker Hub registry for OCI
-                echo "$DOCKER_PASS" | helm registry login registry-1.docker.io -u "$DOCKER_USER" --password-stdin
+              # package only with --version
+              helm package public1-frontend-helm-chart \
+                --version ${chartVersion}
 
-                # package the chart with the new version
-                helm package public1-frontend-helm-chart \
-                  --version ${chartVersion} \
-
-                # push the packaged chart up to your OCI repo on DockerHub
-                helm push public1-frontend-helm-chart-${chartVersion}.tgz ${HELM_REPO_URL}
-              """
-            }
+              # push the chart to your DockerHub OCI repo
+              helm push public1-frontend-helm-chart-${chartVersion}.tgz \
+                ${HELM_REPO_URL}
+            """
           }
         }
       }
