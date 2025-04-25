@@ -108,10 +108,7 @@ spec:
               passwordVariable: 'DOCKER_PASSWORD'
             )]) {
               sh """
-                # login to docker.io (defaults to Docker Hub)
                 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-
-                # build & push
                 docker build -t ${DOCKER_REPO}:${newTag} frontend/
                 docker push ${DOCKER_REPO}:${newTag}
               """
@@ -136,19 +133,16 @@ spec:
               passwordVariable: 'DOCKER_PASSWORD'
             )]) {
               sh """
-                # ensure Helm can talk to Docker Hub’s OCI endpoint
+                # ensure Docker Hub login is in place
                 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
-                # 1) create the .tgz
-                helm package public1-frontend-helm-chart \
-                  --version ${newTag} \
+                # package chart
+                helm package public1-frontend-helm-chart \\
+                  --version ${newTag} \\
                   --app-version ${newTag}
 
-                # 2) save that .tgz into the OCI registry
-                helm chart save public1-frontend-helm-chart-${newTag}.tgz ${HELM_REPO} --version ${newTag}
-
-                # 3) push
-                helm chart push ${HELM_REPO}:${newTag}
+                # push to OCI registry on Docker Hub
+                helm push public1-frontend-helm-chart-${newTag}.tgz ${HELM_REPO}
               """
             }
           }
