@@ -23,3 +23,4 @@ Add a directory with the Jenkins pod agent's docker file (to ensure that in the 
 Add a scripts directory and insert the increment tags script.
 Change the Jenkins app Kubernetes service type to LB (to get an external IP for the Jenkins UI) and access.
 In the login page insert the user "admin" and search for the admin password with the command:                                                                                 kubectl get secret jenkins -n jenkins   -o jsonpath="{.data.jenkins-admin-password}" | base64 --decode; echo
+Download Kubernetes, Docker, Node and git plug-in's.
