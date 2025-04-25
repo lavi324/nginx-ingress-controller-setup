@@ -39,9 +39,7 @@ spec:
     }
   }
 
-  options {
-    skipDefaultCheckout()
-  }
+  options { skipDefaultCheckout() }
 
   environment {
     GIT_CREDENTIALS_ID    = 'github'
@@ -60,7 +58,7 @@ spec:
             // 1) Clean workspace
             sh 'rm -rf *'
 
-            // 2) Clone repo into this shared volume
+            // 2) Clone the repo
             withCredentials([usernamePassword(
               credentialsId: GIT_CREDENTIALS_ID,
               usernameVariable: 'GIT_USERNAME',
@@ -69,10 +67,12 @@ spec:
               sh 'git clone https://$GIT_USERNAME:$GIT_PASSWORD@github.com/lavi324/Public1.git .'
             }
 
-            // 3) Mark workspace as safe for Git
+            // 3) Mark as safe and set local Git user
             sh 'git config --global --add safe.directory "$PWD"'
+            sh 'git config user.name "$GIT_USERNAME"'
+            sh 'git config user.email "$USER_EMAIL"'
 
-            // 4) Bump tags
+            // 4) Bump both tags
             sh 'chmod +x scripts/increment_version.sh'
             sh './scripts/increment_version.sh'
 
@@ -85,7 +85,7 @@ spec:
               sh '''
                 git add public1-frontend-helm-chart/templates/frontend-app.yaml \
                         public1-frontend-helm-chart/Chart.yaml
-                git commit -m "chore: increment versions" --author="$GIT_USERNAME <$USER_EMAIL>"
+                git commit -m "chore: increment versions"
                 git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/lavi324/Public1.git HEAD:main
               '''
             }
@@ -104,7 +104,6 @@ spec:
               ''',
               returnStdout: true
             ).trim()
-
             withCredentials([usernamePassword(
               credentialsId: DOCKER_CREDENTIALS_ID,
               usernameVariable: 'DOCKER_USERNAME',
@@ -131,7 +130,6 @@ spec:
               ''',
               returnStdout: true
             ).trim()
-
             withCredentials([usernamePassword(
               credentialsId: DOCKER_CREDENTIALS_ID,
               usernameVariable: 'DOCKER_USERNAME',
