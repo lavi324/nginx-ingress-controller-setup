@@ -22,12 +22,12 @@ Add the Jenkinsfile (CI pipeline).
 Add a directory with the Jenkins pod agent's docker file (to ensure that in the pipeline each agent pod starts with all tools already installed).
 Add a scripts directory and insert the increment tags script.
 Change the Jenkins app Kubernetes service type to LB (to get an external IP for the Jenkins UI service) and access.
-In the login page insert the user "admin" and search for the admin password with the command:                                                                                 kubectl get secret jenkins -n jenkins   -o jsonpath="{.data.jenkins-admin-password}" | base64 --decode; echo
+In the login page insert the user "admin" and search for the admin password with the command:                                 kubectl get secret jenkins -n jenkins   -o jsonpath="{.data.jenkins-admin-password}" | base64 --decode; echo
 Download Kubernetes, Docker, Node and git plug-in's and configure the GitHub and DockerHub credentials.
 Create a pipeline and configure the project's GitHub URL.
 Make sure that the pipeline is working well with no errors in the console output.
 Change the ArgoCD app Kubernetes service type to NodePort (You can not use more then 4 LB's in the GCP free plan) and access to the UI.
-Create an ingress firewall to allow external HTTP traffic to ArgoCD NodePort service.                                                                         
-In the login page insert the user "admin" and search for the admin password with the command:                                                                                 kubectl get secret argocd-initial-admin-secret -n argo -o jsonpath="{.data.password}" | base64 --decode && echo
+Create an ingress firewall to allow your device public IP to transmit HTTP traffic to ArgoCD NodePort service (because GKE automatically creates a firewall rule (when you are using a LB) that allows traffic from anywhere in the Internet, but if you are using NodePort (expose to the internet some port from the Node external IP) GKE is not creating a firewall automatically. In the login page insert the user "admin" and search for the admin password with the command:                                 kubectl get secret argocd-initial-admin-secret -n argo -o jsonpath="{.data.password}" | base64 --decode && echo
 Add the DockerHub repo in settings and enable OCI (standard for a containers management).
-Create a new Argo app with the DockerHub repo and use "*" as the chart tag (for the latest tag).
+Create a new Argo app with the Helm chart DockerHub repo and use "*" as the chart tag (for the latest tag).
+Access to the new service that Argo created and see that the frontend page is working well.
