@@ -4,7 +4,7 @@ This project delivers a fully automated, production-ready MERN stack (MongoDB, E
 
 The React frontend page pulls the latest Apple index price from an external indexes API and displays it along with your public IP and access timestamp via an Express REST API, while a backend job periodically fetches fresh index data and stores each quote—plus the viewer’s IP and timestamp in a MongoDB collection.
 
-
+*Start*:
 
 Open a new GitHub repo, pull the repo into the cloud shell and config the GitHub user for a future Push requests.
 
