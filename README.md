@@ -21,9 +21,11 @@ Create a Helm directory with the Chart.yaml and the frontend app kubernetes file
 Add the Jenkinsfile (CI pipeline).
 Add a directory with the Jenkins pod agent's docker file (to ensure that in the pipeline each agent pod starts with all tools already installed).
 Add a scripts directory and insert the increment tags script.
-Change the Jenkins app Kubernetes service type to LB (to get an external IP for the Jenkins UI) and access.
+Change the Jenkins app Kubernetes service type to LB (to get an external IP for the Jenkins UI service) and access.
 In the login page insert the user "admin" and search for the admin password with the command:                                                                                 kubectl get secret jenkins -n jenkins   -o jsonpath="{.data.jenkins-admin-password}" | base64 --decode; echo
 Download Kubernetes, Docker, Node and git plug-in's and configure the GitHub and DockerHub credentials.
 Create a pipeline and configure the project's GitHub URL.
-Change the ArgoCD app Kubernetes service type to LB (same as Jenkins workflow) and access to the UI.
+Make sure that the pipeline is working well with no errors in the console output.
+Change the ArgoCD app Kubernetes service type to NodePort (You can not use more then 4 LB's in the GCP free plan) and access to the UI.
+Create a firewall to allow external HTTP traffic to ArgoCD NodePort service.                                                                         
 
