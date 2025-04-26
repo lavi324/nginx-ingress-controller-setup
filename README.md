@@ -27,6 +27,7 @@ Download Kubernetes, Docker, Node and git plug-in's and configure the GitHub and
 Create a pipeline and configure the project's GitHub URL.
 Make sure that the pipeline is working well with no errors in the console output.
 Change the ArgoCD app Kubernetes service type to NodePort (You can not use more then 4 LB's in the GCP free plan) and access to the UI.
-Create a firewall to allow external HTTP traffic to ArgoCD NodePort service.                                                                         
+Create an ingress firewall to allow external HTTP traffic to ArgoCD NodePort service.                                                                         
 In the login page insert the user "admin" and search for the admin password with the command:                                                                                 kubectl get secret argocd-initial-admin-secret -n argo -o jsonpath="{.data.password}" | base64 --decode && echo
 Add the DockerHub repo in settings and enable OCI (standard for a containers management).
+Create a new Argo app with the DockerHub repo and use "*" as the chart tag (for the latest tag).
