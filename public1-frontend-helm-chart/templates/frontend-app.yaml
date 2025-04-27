@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: lavi324/public1-frontend:2.8
+          image: lavi324/public1-frontend:2.9
           ports:
             - containerPort: 80
 ---
