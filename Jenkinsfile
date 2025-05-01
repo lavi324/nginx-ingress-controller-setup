@@ -77,7 +77,7 @@ spec:
           )]) {
             sh '''
               rm -rf *
-              git clone https://$GIT_USER:$GIT_TOKEN@github.com/lavi324/Public1.git .
+              git clone https://$GIT_USER:$GIT_TOKEN@github.com/lavi324/mern-gke-cicd-pipeline.git .
               git config --global --add safe.directory "$PWD"
               git config user.name "$GIT_USER"
               git config user.email "$USER_EMAIL"
