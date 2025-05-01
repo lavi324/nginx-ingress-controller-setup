@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Load environment variables from .env if present
+if [ -f .env ]; then
+  # shellcheck disable=SC1091
+  source .env
+fi
+
 # 1) Stage & commit
 echo "→ git add ."
 git add .
