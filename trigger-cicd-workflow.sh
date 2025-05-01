@@ -6,7 +6,7 @@ echo "→ git add ."
 git add .
 
 echo '→ git commit -m "new"'
-git commit -m "new"
+git commit -m "new" || true
 
 # 2) Push to GitHub
 echo "→ git push to GitHub"
@@ -32,28 +32,38 @@ curl -X POST \
   -H "Jenkins-Crumb: ${CRUMB}" \
   "${JENKINS_URL}/job/${JOB_NAME}/build"
 
-# 4) Wait for build to appear
+# 4) Wait for the build to appear
 echo "→ waiting for build #${NEXT} to start…"
 until curl -s --user "${JENKINS_USER}:${JENKINS_API_TOKEN}" \
     "${JENKINS_URL}/job/${JOB_NAME}/${NEXT}/api/json" &> /dev/null; do
   sleep 1
 done
 
-# 5) Poll build status
+# 5) Poll build status (parsing via grep to avoid JSON errors)
 POLL_INTERVAL=10
 echo "→ build #${NEXT} started. Polling every ${POLL_INTERVAL}s…"
 while true; do
-  read BUILDING RESULT <<<$(curl -s --user "${JENKINS_USER}:${JENKINS_API_TOKEN}" \
-    "${JENKINS_URL}/job/${JOB_NAME}/${NEXT}/api/json?tree=building,result" \
-    | python3 -c 'import sys,json; j=json.load(sys.stdin); print(j["building"], j["result"] or "")'
-  )
-  if [ "${BUILDING}" = "True" ]; then
+  DATA=$(curl -s --user "${JENKINS_USER}:${JENKINS_API_TOKEN}" \
+    "${JENKINS_URL}/job/${JOB_NAME}/${NEXT}/api/json?tree=building,result")
+
+  # extract building flag and result (null → empty)
+  BUILDING=$(echo "$DATA" | grep -o '"building":[^,]*' | cut -d: -f2)
+  RESULT=$(echo "$DATA" | grep -o '"result":[^,}]*'   | cut -d: -f2 | tr -d '"')
+
+  if [ -z "$BUILDING" ]; then
+    echo "   waiting for build info…"
+    sleep "${POLL_INTERVAL}"
+    continue
+  fi
+
+  if [ "$BUILDING" = "true" ]; then
     echo "   still building…"
     sleep "${POLL_INTERVAL}"
-  else
-    echo "→ build #${NEXT} finished with status: ${RESULT}"
-    break
+    continue
   fi
+
+  echo "→ build #${NEXT} finished with status: ${RESULT:-UNKNOWN}"
+  break
 done
 
 # 6) On success, pull; otherwise exit non-zero
