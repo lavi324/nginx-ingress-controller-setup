@@ -27,10 +27,10 @@ NEXT=$(curl -s --user "${JENKINS_USER}:${JENKINS_API_TOKEN}" \
 echo "   will trigger build #${NEXT}"
 
 echo "→ triggering Jenkins job ${JOB_NAME}"
-curl -X POST \
+curl -s -X POST \
   --user "${JENKINS_USER}:${JENKINS_API_TOKEN}" \
   -H "Jenkins-Crumb: ${CRUMB}" \
-  "${JENKINS_URL}/job/${JOB_NAME}/build"
+  "${JENKINS_URL}/job/${JOB_NAME}/build" > /dev/null
 
 # 4) Wait for the build to appear
 echo "→ waiting for build #${NEXT} to start…"
@@ -39,26 +39,34 @@ until curl -s --user "${JENKINS_USER}:${JENKINS_API_TOKEN}" \
   sleep 1
 done
 
-# 5) Poll build status (parsing via grep to avoid JSON errors)
+# 5) Poll build status with Bash regex
 POLL_INTERVAL=10
 echo "→ build #${NEXT} started. Polling every ${POLL_INTERVAL}s…"
 while true; do
   DATA=$(curl -s --user "${JENKINS_USER}:${JENKINS_API_TOKEN}" \
     "${JENKINS_URL}/job/${JOB_NAME}/${NEXT}/api/json?tree=building,result")
 
-  # extract building flag and result (null → empty)
-  BUILDING=$(echo "$DATA" | grep -o '"building":[^,]*' | cut -d: -f2)
-  RESULT=$(echo "$DATA" | grep -o '"result":[^,}]*'   | cut -d: -f2 | tr -d '"')
+  if [[ $DATA =~ \"building\":(true|false) ]]; then
+    BUILDING=${BASH_REMATCH[1]}
+  else
+    BUILDING=""
+  fi
+
+  if [[ $DATA =~ \"result\":\"([A-Z]+)\" ]]; then
+    RESULT=${BASH_REMATCH[1]}
+  else
+    RESULT=""
+  fi
 
   if [ -z "$BUILDING" ]; then
     echo "   waiting for build info…"
-    sleep "${POLL_INTERVAL}"
+    sleep $POLL_INTERVAL
     continue
   fi
 
   if [ "$BUILDING" = "true" ]; then
     echo "   still building…"
-    sleep "${POLL_INTERVAL}"
+    sleep $POLL_INTERVAL
     continue
   fi
 
