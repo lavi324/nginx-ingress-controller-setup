@@ -73,3 +73,7 @@ Add the DockerHub repo in settings and enable OCI (standard for container manage
 Create a new Argo app with the Helm chart DockerHub repo and use "*" as the chart tag (for the latest tag).
 
 Access to the new service that Argo created and see that the frontend page is working well.
+
+With that set up, if you want to change something in the frontend web page you neen just to change the frontend/src/App.jsx file -> to push the new change to the GitHub repo -> to execute the Jenkins pipeline and after approximately 3 minutes the frontend web page will sync with the new change. (dont forget to "git pull" to the terminal repo after every pipeline execution because there is a files changes).                                                                                                                                                                                                                                                                                
+Generate a Jenkins API token for the the future script with those steps: Get into the Jenkins UI -> click on the downward arrow next to your username in the top right corner -> Security -> Add new token.                                                                                                                                                     
+Create a script with the new Jenkins API token that will automate the steps in row 77.  
