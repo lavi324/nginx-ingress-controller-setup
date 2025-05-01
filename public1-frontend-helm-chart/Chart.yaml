@@ -2,5 +2,5 @@ apiVersion: v2
 name: public1-frontend-helm-chart
 description: A Helm chart for deploying a frontend application
 type: application
-version: 1.0.19
+version: 1.0.20
 
