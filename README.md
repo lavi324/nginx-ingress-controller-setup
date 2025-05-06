@@ -1,6 +1,6 @@
 *Short explanations about the project*:
 
-This project delivers a fully automated, production-ready MERN stack (MongoDB, Express.js, React, Node.js) on Google Cloud by using Terraform for infrastructure provisioning, Docker and Helm to package and deploy containers as Kubernetes Deployments and Services, Jenkins for continuous integration and ArgoCD for GitOps-driven continuous delivery.
+This project delivers a fully automated MERN stack (MongoDB, Express.js, React, Node.js) on Google Cloud by using Terraform for infrastructure provisioning, Docker and Helm to package and deploy containers as Kubernetes Deployments and Services, Jenkins for continuous integration and ArgoCD for continuous delivery.
 
 The React frontend page pulls the latest Apple index price from an external indexes API and displays it along with your public IP and access timestamp via an Express REST API, while a backend job periodically fetches fresh index data and stores each quote plus the viewer’s IP and timestamp in a MongoDB collection.
 
@@ -74,7 +74,12 @@ Create a new Argo app with the Helm chart DockerHub repo and use "*" as the char
 
 Access to the new service that Argo created and see that the frontend page is working well.
 
-Follow those to change something in the frontend web page: change the frontend/src/App.jsx file -> push the new change to the GitHub repo -> execute the Jenkins pipeline and after approximately 3 minutes the frontend web page will sync with the new change. (dont forget to "git pull" to the terminal repo after every pipeline execution because there is a files changes).                                                                                                                                   ***as you see those steps could be handled with a simple automation so follow those steps:***                                                                                                                                             
-Generate a Jenkins API token for the the future script with those steps: Get into the Jenkins UI -> click on the downward arrow next to your username in the top right corner -> Security -> Add new token .                                                                                                                                                     
-Create an env variables file that you will use in the future script because you going to push him into GitHub and you don't want that hackers will see any sensitive data (use the "export" Bash command in the file).                                                                                                                                                                                        
+Follow those to change something in the frontend web page: change the frontend/src/App.jsx file -> push the new change to the GitHub repo -> execute the Jenkins pipeline and after approximately 3 minutes the frontend web page will sync with the new change. (dont forget to "git pull" to the cloudshell after every pipeline execution because there is a files changes).  
+
+***as you see those steps could be handled with a simple automation so follow those three steps*** 
+
+Generate a Jenkins API token for the the future script with those steps: Get into the Jenkins UI -> click on the downward arrow next to your username in the top right corner -> Security -> Add new token .  
+
+Create an env variables file that you will use in the future script because you going to push him into GitHub and you don't want that hackers will see any sensitive data (use the "export" Bash command in the file).    
+
 Create a script with the new Jenkins API token and the new env variables that will automate the steps in row 77.  
