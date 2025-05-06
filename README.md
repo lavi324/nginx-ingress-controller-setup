@@ -82,4 +82,4 @@ Generate a Jenkins API token for the the future script with those steps: Get int
 
 Create an env variables file that you will use in the future script because you going to push him into GitHub and you don't want that hackers will see any sensitive data (use the "export" Bash command in the file).    
 
-Create a script with the new Jenkins API token and the new env variables that will automate the steps in row 77.  
+Create a script with the new Jenkins API token and the new env variables.  
