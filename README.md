@@ -8,7 +8,7 @@ I want use NGINX because it's a stable, widely adopted Ingress controller that f
 It allows me to manage routing, TLS certificates, and load balancing with a simple and clear configuration. 
 
 **What do I currently have in the project before adding an Ingress controller?**
-In my current main project, *mern-gke-cicd-pipeline*, i am running five core services:
+In my current main project, *https://github.com/lavi324/mern-gke-cicd-pipeline*, i am running five core services:
 A **frontend** React application served via Nginx and exposed to the internet through a Kubernetes LoadBalancer service.
 A **backend** Express server exposed via a LoadBalancer that fetches Apple index data, store client data in MongoDB, and serves the data to the frontend via a REST API.
 A **MongoDB** database used to store client public IP and client access timestep, accessible internally within the cluster via a ClusterIP service.
