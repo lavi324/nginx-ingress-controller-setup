@@ -11,7 +11,7 @@ function App() {
       .then(res => res.json())
       .then(data => {
         setClientIp(data.ip);
-        return fetch('http://34.10.205.70:3001/api/sp500', {
+        return fetch('http://backend.default.svc.cluster.local:3001/api/sp500', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ip: data.ip }) // send IP to backend
@@ -42,4 +42,3 @@ function App() {
 }
 
 export default App;
-
