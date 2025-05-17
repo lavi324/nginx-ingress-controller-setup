@@ -17,6 +17,16 @@ An **Argo CD** controller used to manage deployments, exposed via a NodePort and
 This setup uses multiple external IPs and load balancers, which increases both operational cost and deployment mess. 
 Moving forward, I plan to implement access through a single NGINX Ingress controller to simplify API requeses routing, improve security, and reduce cost.
 
+**NGINX Ingress Controller setup:**
+
+Create a new NS for the NGINX Helm chart.
+
+install the Helm chart in the new NS.
+
+Create 1 ingress file and apply for each NS pods.
+
+
+
 
 
 
