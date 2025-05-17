@@ -3,7 +3,7 @@ An Ingress Controller is a Kubernetes component that manages external HTTP and H
 It acts as a smart router, directing requests to internal services based on path or host. 
 Ingress Controllers also allow centralized TLS management and help reduce cloud costs by exposing multiple services through a single LoadBalancer and external IP.
 
-**Why am I using NGINX as the Ingress controller in mט project?**
+**Why am I using NGINX as the Ingress controller in my project?**
 I'm using NGINX because it's a stable, widely adopted Ingress controller that fits perfectly for small to medium-sized projects like mine.
 It allows me to manage routing, TLS certificates, and load balancing with a simple and clear configuration. 
 
