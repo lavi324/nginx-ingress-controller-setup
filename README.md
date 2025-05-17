@@ -7,6 +7,8 @@ Ingress Controllers also allow centralized TLS management and help reduce cloud 
 I'm using NGINX because it's a stable, widely adopted Ingress controller that fits perfectly for small to medium-sized projects like mine.
 It allows me to manage routing, TLS certificates, and load balancing with a simple and clear configuration. 
 
+_____________________________________________________________________________________________________________
+
 In my main project, *mern-gke-cicd-pipeline*, I realized the need for an Ingress controller.
 I chose to implement one because of **those reasons**:
 It allows me to expose multiple services (like frontend and backend) using a single external IP, which reduces LB's cost and simplifies access to the web pages.
