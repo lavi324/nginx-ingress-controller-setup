@@ -23,7 +23,12 @@ Create a new NS for the NGINX Helm chart.
 
 install the Helm chart in the new NS.
 
-Create 1 ingress file and apply for each NS pods.
+Run a Helm upgrade on the Jenkins Helm chart to configure the Jenkins UI to be served under the /jenkins path.
+
+**For 1 ingress to all 3 pods execute those steps:**
+
+**For 1 Ingress for the Jenkins pod that located in his NameSpace and 1 Ingress for the frontend and the backend pods that located in the production NameSpace execute those steps:**
+
 
 
 
