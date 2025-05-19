@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins
+  namespace: jenkins
+  labels:
+    app.kubernetes.io/name: jenkins
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/component: jenkins-controller
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080

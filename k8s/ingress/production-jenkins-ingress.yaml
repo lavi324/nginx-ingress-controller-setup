@@ -11,7 +11,7 @@ spec:
   rules:
     - http:
         paths:
-          # API → backend
+          # 1) API → backend
           - path: /api
             pathType: Prefix
             backend:
@@ -20,7 +20,16 @@ spec:
                 port:
                   number: 3001
 
-          # Frontend → “catch‐all” at /
+          # 2) /jenkins → Jenkins (forward as-is)
+          - path: /jenkins
+            pathType: Prefix
+            backend:
+              service:
+                name: jenkins
+                port:
+                  number: 8080
+
+          # 3) / → frontend
           - path: /
             pathType: Prefix
             backend:
