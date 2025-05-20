@@ -1,4 +1,0 @@
-helm upgrade jenkins jenkins/jenkins \
-  --namespace jenkins \
-  --reuse-values \
-  --set controller.jenkinsUriPrefix="/jenkins"
