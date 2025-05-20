@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: lavi324/public1-frontend:4.0
+          image: lavi324/public1-frontend:4.1
           ports:
             - containerPort: 80
 ---
@@ -28,4 +28,4 @@ spec:
   ports:
     - port: 80
       targetPort: 80
-  type: LoadBalancer
+  type: ClusterIP

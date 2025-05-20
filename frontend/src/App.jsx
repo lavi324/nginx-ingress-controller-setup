@@ -6,15 +6,16 @@ function App() {
   const [clientIp, setClientIp] = useState(null);
 
   useEffect(() => {
-    // Step 1: Get public IP from client side
+    // Step 1: get public IP from client side
     fetch('https://api.ipify.org?format=json')
       .then(res => res.json())
       .then(data => {
         setClientIp(data.ip);
-        return fetch('http://34.72.12.137:3001/api/sp500', {
+        // Step 2: post to your backend via the Ingress at /api
+        return fetch('/api/sp500', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ip: data.ip }) // send IP to backend
+          body: JSON.stringify({ ip: data.ip })
         });
       })
       .then(res => res.json())
@@ -27,12 +28,20 @@ function App() {
       <h1>Apple Index</h1>
       {spData ? (
         <>
-          <h2>{spData.stock.name} ({spData.stock.symbol})</h2>
+          <h2>
+            {spData.stock.name} ({spData.stock.symbol})
+          </h2>
           <p>Price: ${spData.stock.price}</p>
-          <p>Change: {spData.stock.change} ({spData.stock.changesPercentage}%)</p>
+          <p>
+            Change: {spData.stock.change} ({spData.stock.changesPercentage}%)
+          </p>
           <hr />
-          <p><strong>Your Public IP:</strong> {spData.visitor.ip}</p>
-          <p><strong>Accessed at:</strong> {spData.visitor.accessedAt}</p>
+          <p>
+            <strong>Your Public IP:</strong> {spData.visitor.ip}
+          </p>
+          <p>
+            <strong>Accessed at:</strong> {spData.visitor.accessedAt}
+          </p>
         </>
       ) : (
         <p>Loading...</p>
