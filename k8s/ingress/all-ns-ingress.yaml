@@ -1,7 +1,8 @@
+# all-ns-ingress.yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: production-ingress
+  name: all-ns-ingress
   namespace: production
   annotations:
     kubernetes.io/ingress.class: nginx
@@ -11,7 +12,7 @@ spec:
   rules:
     - http:
         paths:
-          # 1) Only match /api/sp500 and forward to backend
+          # 1) API → backend
           - path: /api/sp500
             pathType: Prefix
             backend:
@@ -20,7 +21,7 @@ spec:
                 port:
                   number: 3001
 
-          # 2) /jenkins → Jenkins (forward as-is)
+          # 2) /jenkins → Jenkins
           - path: /jenkins
             pathType: Prefix
             backend:
@@ -29,7 +30,16 @@ spec:
                 port:
                   number: 8080
 
-          # 3) / → frontend
+          # 3) /argo → ArgoCD (now mounted under /argo by Helm args)
+          - path: /argo
+            pathType: Prefix
+            backend:
+              service:
+                name: argo-cd-argocd-server
+                port:
+                  number: 80
+
+          # 4) / → frontend
           - path: /
             pathType: Prefix
             backend:
