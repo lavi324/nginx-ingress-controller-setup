@@ -13,7 +13,7 @@ A **frontend** React application served via Nginx and exposed to the internet th
 A **backend** Express server exposed via a LoadBalancer that fetches Apple index data, store client data in MongoDB, and serves the data to the frontend via a REST API.
 A **MongoDB** database used to store client public IP and client access timestep, accessible internally within the cluster via a ClusterIP service.
 A **Jenkins** server used for CI pipeline automation, deployed with a LoadBalancer to allow external access to the Jenkins UI.
-An **Argo CD** controller used to manage deployments, exposed via a NodePort and accessible through the external IP of the cluster node only for my public IP.
+An **Argo CD** controller used to manage CD, exposed via a NodePort and accessible through the external IP of the cluster node only for my public IP.
 This setup uses multiple external IPs and load balancers, which increases both operational cost and deployment mess. 
 Moving forward, I plan to implement access through a single NGINX Ingress controller to simplify API requeses routing, improve security, and reduce cost.
 
@@ -21,13 +21,15 @@ Moving forward, I plan to implement access through a single NGINX Ingress contro
 
 Create a new NS for the NGINX Helm chart.
 
-install the Helm chart in the new NS.
+install the NGINX 
+Helm chart in the new NS.
 
-Run a Helm upgrade on the Jenkins Helm chart to configure the Jenkins UI to be served under the /jenkins path.
+Run a Helm upgrade command on the Jenkins Helm chart to configure the Jenkins UI to be served under the /jenkins path (helm upgrade jenkins jenkins/jenkins --namespace jenkins --reuse-values --set controller.jenkinsUriPrefix="/jenkins") .
 
-**For 1 ingress to all 3 pods execute those steps:**
 
-**For 1 Ingress for the Jenkins pod that located in his NameSpace and 1 Ingress for the frontend and the backend pods that located in the production NameSpace execute those steps:**
+
+
+
 
 
 
