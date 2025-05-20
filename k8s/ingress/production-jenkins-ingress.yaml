@@ -11,8 +11,8 @@ spec:
   rules:
     - http:
         paths:
-          # 1) API → backend
-          - path: /api
+          # 1) Only match /api/sp500 and forward to backend
+          - path: /api/sp500
             pathType: Prefix
             backend:
               service:

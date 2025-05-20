@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: lavi324/public1-backend:2.1
+          image: lavi324/public1-backend:2.2
           ports:
             - containerPort: 3001
           env:
@@ -34,5 +34,5 @@ spec:
     - protocol: TCP
       port: 3001
       targetPort: 3001
-  type: LoadBalancer
+  type: ClusterIP
 

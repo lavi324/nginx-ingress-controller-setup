@@ -18,7 +18,7 @@ const userMetaSchema = new mongoose.Schema({
 const UserMeta = mongoose.model('UserMeta', userMetaSchema);
 
 // MongoDB connection
-const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/visitorDB';
+const mongoUri = process.env.MONGO_URI || 'mongodb://mongodb.mongo.svc.cluster.local:27017/visitorDB';
 mongoose.connect(mongoUri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
