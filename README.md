@@ -19,12 +19,11 @@ Moving forward, I plan to implement access through a single NGINX Ingress contro
 
 **NGINX Ingress Controller setup:**
 
-Create a new NS for the NGINX Helm chart.
+install the NGINX Helm chart in the new NGINX NS.
 
-install the NGINX 
-Helm chart in the new NS.
+Run a Helm upgrade command on the Jenkins and Argo Helm charts to configure the Jenkin adn Argos UI's to be served under the /jenkins and /argo path's.
 
-Run a Helm upgrade command on the Jenkins Helm chart to configure the Jenkins UI to be served under the /jenkins path (helm upgrade jenkins jenkins/jenkins --namespace jenkins --reuse-values --set controller.jenkinsUriPrefix="/jenkins") .
+How is the argo and the frontend working together on port 80?
 
 
 
