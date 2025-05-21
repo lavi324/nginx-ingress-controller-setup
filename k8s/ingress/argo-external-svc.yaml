@@ -5,7 +5,7 @@ metadata:
   namespace: production
 spec:
   type: ExternalName
-  externalName: argo-cd-argocd-server.argo.svc.cluster.local  # Reference the ArgoCD service in the 'argo' namespace
+  externalName: argo-cd-argocd-server.argo.svc.cluster.local
   ports:
     - port: 80
-      targetPort: 8081  # Default ArgoCD server port
+      # no targetPort needed (defaults to 80, which maps to the argo svc’s 80→pod:8080)
