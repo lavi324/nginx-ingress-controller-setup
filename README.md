@@ -33,13 +33,16 @@ Create an Ingress resource in the production namespace that exposes:
 
 **/argo → ArgoCD (in argo namespace)**
 
-But the problem now is that Kubernetes Ingress resources can only reference Services in the **same namespace** and we have two services that in another namespace (ArgoCD and Jenkins).
+But the problem now is that the Kubernetes Ingress resources can only reference Services in the **same namespace** and we have two services that in another namespace (ArgoCD and Jenkins).
 
 The solution is to create an **ExternalName Service** that implement a DNS redirector service in your namespace that simply redirects to a real service in another namespace.
 
 **Now, if a pod, service, or process running inside the production namespace makes a network request to a service name like jenkins or argo-cd-argocd-server, Kubernetes will resolve that name using the ExternalName service and automatically redirect the request to the real service in its original namespace.**
 
-How is the argo and the frontend working together on port 80?
+________________________________________________________________________________________________________________
+
+Q: How can both Argo CD and the React frontend apps be served through the same LoadBalancer IP on port 80?
+A: NGINX Ingress listens on port 80 and routes incoming requests by URL path, allowing multiple services to share that same port with no binding conflicts.
 
 
 
