@@ -21,7 +21,23 @@ Moving forward, I plan to implement access through a single NGINX Ingress contro
 
 install the NGINX Helm chart in the new NGINX NS.
 
-Run a Helm upgrade command on the Jenkins and Argo Helm charts to configure the Jenkin adn Argos UI's to be served under the /jenkins and /argo path's.
+Run a Helm upgrade command on the Jenkins and Argo Helm charts to configure the Jenkin and ArgoCD UI's to be served under the /jenkins and /argo path's.
+
+Create an Ingress resource in the production namespace that exposes:
+
+**/ → frontend (production)**
+
+**/api/sp500 → backend (production)**
+
+**/jenkins → Jenkins (in jenkins namespace)**
+
+**/argo → ArgoCD (in argo namespace)**
+
+But the problem now is that Kubernetes Ingress resources can only reference Services in the **same namespace** and we have two services that in another namespace (ArgoCD and Jenkins).
+
+The solution is to create an **ExternalName Service** that implement a DNS redirector service in your namespace that simply redirects to a real service in another namespace.
+
+**Now, if a pod, service, or process running inside the production namespace makes a network request to a service name like jenkins or argo-cd-argocd-server, Kubernetes will resolve that name using the ExternalName service and automatically redirect the request to the real service in its original namespace.**
 
 How is the argo and the frontend working together on port 80?
 
