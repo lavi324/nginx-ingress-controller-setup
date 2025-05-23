@@ -42,6 +42,7 @@ The solution is to create an **ExternalName Service** that implement a DNS redir
 ________________________________________________________________________________________________________________
 
 Q: How can both Argo CD and the React frontend apps be served through the same LoadBalancer IP on port 80?
+
 A: NGINX Ingress listens on port 80 and routes incoming requests by URL path, allowing multiple services to share that same port with no binding conflicts.
 
 
