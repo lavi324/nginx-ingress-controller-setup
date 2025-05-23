@@ -11,7 +11,7 @@ spec:
   rules:
     - http:
         paths:
-          # 1) API → backend
+          # 1) /api/sp500 → backend
           - path: /api/sp500
             pathType: Prefix
             backend:
@@ -29,7 +29,7 @@ spec:
                 port:
                   number: 8080
 
-          # 3) /argo → ArgoCD (now mounted under /argo by Helm args)
+          # 3) /argo → ArgoCD 
           - path: /argo
             pathType: Prefix
             backend:
