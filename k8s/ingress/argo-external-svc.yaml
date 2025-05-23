@@ -8,4 +8,4 @@ spec:
   externalName: argo-cd-argocd-server.argo.svc.cluster.local
   ports:
     - port: 80
-      # no targetPort needed (defaults to 80, which maps to the argo svc’s 80→pod:8080)
+      
