@@ -27,9 +27,9 @@ Run a Helm upgrade command on the Jenkins and Argo Helm charts to configure the 
 
 Create an Ingress resource in the production namespace that exposes:
 
-**/ → frontend (production)**
+**/ → Frontend (in production namespace)**
 
-**/api/sp500 → backend (production)**
+**/api/sp500 → Backend (in production namespace)**
 
 **/jenkins → Jenkins (in jenkins namespace)**
 
