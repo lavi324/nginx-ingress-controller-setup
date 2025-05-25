@@ -17,7 +17,7 @@ An **Argo CD** controller used to manage CD, exposed via a NodePort and accessib
 This setup uses multiple external IPs and load balancers, which increases both operational cost and deployment mess. 
 Moving forward, I plan to implement access through a single NGINX Ingress controller to simplify API requeses routing, improve security, and reduce cost.
 
-***The main focus of this project is the k8s/ingress directory files, which contains the Ingress configuration for managing HTTP routing within the Kubernetes cluster.***
+***The main focus of this project is the k8s/ingress directory files, which contains the Ingress configuration for managing HTTP routing within the Kubernetes cluster.                                                    This project is a continuation of the https://github.com/lavi324/mern-gke-cicd-pipeline project.***
 
 **NGINX Ingress Controller setup:**
 
