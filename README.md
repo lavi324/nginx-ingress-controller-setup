@@ -43,7 +43,8 @@ ________________________________________________________________________________
 
 Q: How can both Argo CD and the React frontend apps be served through the same LoadBalancer IP on port 80?
 
-A: NGINX Ingress listens on port 80 and routes incoming requests by URL path, allowing multiple services to share that same port with no binding conflicts.
+A: NGINX Ingress listens on port 80 and acts as a reverse proxy that routes incoming HTTP requests based on their URL paths. Each path is mapped to a different Kubernetes Service.                                        This allows multiple applications to be exposed through a single LoadBalancer IP and port, with no port conflicts.
+
 
 
 
