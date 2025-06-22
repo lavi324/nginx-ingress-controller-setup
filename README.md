@@ -35,7 +35,7 @@ Create an Ingress resource in the production namespace that exposes:
 
 **/argo → ArgoCD (in argo namespace)**
 
-But the problem now is that the Kubernetes Ingress resources can only reference Services in the **same namespace** and we have two services that in another namespace (ArgoCD and Jenkins).
+But the problem now is that the Kubernetes Ingress resources can only manage Services in the **same namespace** and we have two services that in another namespace (ArgoCD and Jenkins).
 
 The solution is to create an **ExternalName Service** that implement a DNS redirector service in your namespace that simply redirects to a real service in another namespace.
 
