@@ -23,7 +23,7 @@ Moving forward, I plan to implement access through a single NGINX Ingress contro
 
 install the NGINX Helm chart in the new NGINX NS.
 
-Run a Helm upgrade command on the Jenkins and Argo Helm charts to configure the Jenkin and ArgoCD UI's to be served under the /jenkins and /argo path's.
+Run a Helm upgrade command on the Jenkins and Argo Helm charts to configure the Jenkin and ArgoCD UI's to be served under the /jenkins and /argo routes.
 
 Create an Ingress resource in the production namespace that exposes:
 
