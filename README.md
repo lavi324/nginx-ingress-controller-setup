@@ -4,7 +4,7 @@ It acts as a smart router, directing requests to internal services based on path
 Ingress Controllers also allow centralized TLS management and help reduce cloud costs by exposing multiple services through a single LoadBalancer and external IP.
 
 **Why am i want to use NGINX as the Ingress controller in my project?**
-I want use NGINX because it's a widely adopted Ingress controller that fits perfectly for small to medium-sized projects like mine.
+I want to use NGINX because it's a widely adopted Ingress controller that fits perfectly for small to medium-sized projects like mine.
 It allows me to manage routing, TLS certificates, and load balancing with a simple and clear configuration. 
 
 **What do I currently have in the project before adding an Ingress controller?**
